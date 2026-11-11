@@ -1,0 +1,17 @@
+# Static site for semitycoon.borgorg.org. No host port: caddy (automagica-infra)
+# proxies the hostname to semitycoon-web:80 over shared_network.
+services:
+  web:
+    image: docker.io/library/nginx:stable-alpine
+    container_name: semitycoon-web
+    volumes:
+      - ../site:/usr/share/nginx/html:ro,z
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro,z
+    restart: unless-stopped
+    networks:
+      - shared
+
+networks:
+  shared:
+    external: true
+    name: shared_network

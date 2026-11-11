@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SEMI TYCOON SIMULATOR</title>
+<style>
+:root{--bg:#0a0c0f;--panel:#12161b;--line:#232b34;--tx:#c7d2dc;--mut:#6d7d8c;--dim:#44525e;
+ --cy:#49c5dd;--am:#f0a73d;--mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+ --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:15px;line-height:1.55}
+.wrap{max-width:640px;margin:0 auto;padding:0 14px 40px}
+header{padding:60px 0 30px;background:radial-gradient(130% 90% at 50% -10%,#16222b 0%,var(--bg) 62%)}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.3em;color:var(--am);
+ text-transform:uppercase;margin-bottom:13px}
+h1{font-family:var(--mono);font-size:clamp(28px,8vw,46px);margin:0 0 16px;letter-spacing:-.02em;line-height:1.1}
+h1 span{color:var(--cy)}
+.thesis{font-size:clamp(15px,4.2vw,18px);color:#9fb0bf;max-width:30em;margin:0}
+.thesis b{color:var(--tx)}
+a.card{display:block;margin-top:11px;padding:16px 17px;border-radius:11px;border:1px solid var(--line);
+ background:var(--panel);text-decoration:none;transition:border-color .15s}
+a.card:hover{border-color:#2e4a56}
+a.card .k{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--am);
+ text-transform:uppercase;display:block;margin-bottom:5px}
+a.card .t{color:var(--tx);font-size:17px;font-family:var(--mono)}
+a.card .d{display:block;color:var(--mut);font-size:13.5px;margin-top:4px}
+footer{margin-top:30px;color:var(--dim);font-family:var(--mono);font-size:11px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="eyebrow">Work in progress</div>
+  <h1>SEMI TYCOON<br><span>SIMULATOR</span></h1>
+  <p class="thesis">You run a chip company for forty years. A fab takes four years to build.
+  <b>By the time any decision pays off, the world that justified it is gone.</b></p>
+</div></header>
+<div class="wrap">
+  <a class="card" href="demo/">
+    <span class="k">Playable</span><span class="t">The Line →</span>
+    <span class="d">Three levers. Defects are born from your choices, flow through the
+    factory, and whatever escapes ships into the world and lives there until it fails.</span></a>
+  <a class="card" href="design/">
+    <span class="k">Design explorer</span><span class="t">The mechanics →</span>
+    <span class="d">Latency Ledger, Ripple Deck, Fog Cone, the cycle-timing toy,
+    market segments, scenario cards.</span></a>
+  <a class="card" href="mockups/">
+    <span class="k">Storyboard</span><span class="t">What it looks like →</span>
+    <span class="d">13 gameplay beats in order, isometric UI mockups, variant toggles.</span></a>
+  <footer>RollerCoaster Tycoon from the factory floor · Civilization only for the rivalry</footer>
+</div>
+</body>
+</html>
