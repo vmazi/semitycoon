@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SEMI TYCOON — design explorer</title>
+<style>
+:root{
+  --bg:#0a0c0f; --panel:#12161b; --panel2:#171c23; --line:#232b34;
+  --tx:#c7d2dc; --mut:#6d7d8c; --dim:#44525e;
+  --cy:#49c5dd; --am:#f0a73d; --gr:#62c98c; --rd:#e2706b; --vi:#a98ae0;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--tx);font-family:var(--sans);
+  font-size:15px;line-height:1.55;overflow-x:hidden}
+body{padding-bottom:60px}
+h1,h2,h3{font-family:var(--mono);font-weight:600;letter-spacing:-.02em;line-height:1.2}
+a{color:var(--cy)}
+.wrap{max-width:780px;margin:0 auto;padding:0 14px}
+
+/* ---------- nav ---------- */
+nav{position:sticky;top:0;z-index:50;background:rgba(10,12,15,.93);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.navscroll{display:flex;gap:6px;overflow-x:auto;padding:9px 14px;scrollbar-width:none}
+.navscroll::-webkit-scrollbar{display:none}
+.navscroll a{flex:0 0 auto;font-family:var(--mono);font-size:11px;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--mut);text-decoration:none;padding:5px 10px;
+  border:1px solid var(--line);border-radius:20px;white-space:nowrap}
+.navscroll a.on{color:var(--bg);background:var(--cy);border-color:var(--cy)}
+
+/* ---------- hero ---------- */
+header{padding:52px 0 36px;border-bottom:1px solid var(--line);
+  background:radial-gradient(130% 90% at 50% -10%,#16222b 0%,var(--bg) 62%)}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.3em;color:var(--am);
+  text-transform:uppercase;margin-bottom:14px}
+header h1{font-size:clamp(29px,8.5vw,52px);margin:0 0 16px}
+header h1 span{color:var(--cy)}
+.thesis{font-size:clamp(16px,4.3vw,20px);color:#9fb0bf;max-width:30em;margin:0 0 22px}
+.thesis b{color:var(--tx);font-weight:600}
+.genre{display:flex;flex-wrap:wrap;gap:7px}
+.genre div{font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:4px;
+  border:1px solid var(--line);background:var(--panel);color:var(--mut)}
+.genre div b{color:var(--am);font-weight:600}
+
+/* ---------- sections ---------- */
+section{padding:42px 0 10px;border-bottom:1px solid var(--line)}
+.snum{font-family:var(--mono);font-size:10.5px;letter-spacing:.25em;color:var(--dim);
+  text-transform:uppercase;margin-bottom:9px}
+section h2{font-size:clamp(21px,5.4vw,30px);margin:0 0 12px}
+section h2 em{font-style:normal;color:var(--cy)}
+.lede{color:#93a4b3;max-width:34em;margin:0 0 20px}
+p{max-width:34em}
+.note{font-size:13.5px;color:var(--mut);max-width:34em}
+.note b{color:var(--am);font-weight:600}
+
+/* ---------- generic panel ---------- */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:15px;margin:18px 0}
+.panel-h{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;color:var(--mut);
+  text-transform:uppercase;margin-bottom:12px;display:flex;justify-content:space-between;
+  align-items:center;gap:10px}
+.btn{font-family:var(--mono);font-size:12px;padding:8px 14px;border-radius:6px;
+  border:1px solid var(--line);background:var(--panel2);color:var(--tx);cursor:pointer}
+.btn:active{transform:translateY(1px)}
+.btn.pri{background:var(--cy);border-color:var(--cy);color:#06181d;font-weight:700}
+.btn.gho{background:transparent}
+.btn:disabled{opacity:.35}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ---------- latency ledger ---------- */
+.lev{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #1b2128;
+  cursor:pointer}
+.lev:last-child{border:0}
+.lev-n{flex:1;font-size:14px;min-width:0}
+.lev-n small{display:block;color:var(--dim);font-size:11px;font-family:var(--mono)}
+.fuse{flex:0 0 96px;height:7px;background:#1b2128;border-radius:4px;overflow:hidden;position:relative}
+.fuse i{display:block;height:100%;border-radius:4px}
+.lev-q{flex:0 0 46px;text-align:right;font-family:var(--mono);font-size:12px;color:var(--am)}
+#shadow{margin-top:14px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:8px;padding:12px;min-height:124px}
+.shr{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-family:var(--mono);font-size:11px}
+.shr .lbl{flex:0 0 86px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shr .track{flex:1;height:14px;background:#0e1217;border-radius:3px;position:relative;overflow:hidden}
+.shr .track i{position:absolute;top:0;bottom:0;border-radius:3px;opacity:.55}
+.shr .track b{position:absolute;top:1px;bottom:1px;width:3px;border-radius:2px}
+.yrs{display:flex;font-family:var(--mono);font-size:9.5px;color:var(--dim);
+  margin-left:94px;border-top:1px solid #1b2128;padding-top:5px}
+.yrs span{flex:1}
+
+/* ---------- cycle game ---------- */
+.gauge{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.gauge div{flex:1;min-width:88px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:7px;padding:9px 10px}
+.gauge span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;
+  color:var(--dim);text-transform:uppercase}
+.gauge b{font-family:var(--mono);font-size:18px;font-weight:600}
+svg{display:block;width:100%;height:auto;touch-action:pan-y}
+input[type=range]{width:100%;accent-color:var(--cy);height:30px}
+.verdict{margin-top:12px;padding:12px;border-radius:8px;border:1px solid var(--line);
+  background:var(--panel2);font-size:13.5px}
+.verdict.good{border-color:#2e5f45;background:#101d17}
+.verdict.bad{border-color:#5f3030;background:#1d1112}
+.verdict b{display:block;font-family:var(--mono);font-size:12px;letter-spacing:.1em;
+  text-transform:uppercase;margin-bottom:5px}
+.verdict.good b{color:var(--gr)} .verdict.bad b{color:var(--rd)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;
+  color:var(--mut);margin-top:8px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;
+  vertical-align:middle;margin-right:5px}
+
+/* ---------- fab floor ---------- */
+.floor{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:4px 0 12px}
+.tool{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  padding:8px 7px;cursor:pointer;position:relative;overflow:hidden}
+.tool.sel{border-color:var(--cy)}
+.tool .tn{font-family:var(--mono);font-size:9.5px;color:var(--mut);letter-spacing:.05em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tool .q{display:flex;flex-wrap:wrap;gap:2px;min-height:30px;margin-top:5px;align-content:flex-start}
+.tool .q i{width:5px;height:5px;border-radius:1px;background:var(--cy);opacity:.85}
+.tool .bar{height:3px;background:#0e1217;border-radius:2px;margin-top:4px;overflow:hidden}
+.tool .bar i{display:block;height:100%;background:var(--gr);width:0%}
+.tool .qc{position:absolute;top:6px;right:7px;font-family:var(--mono);font-size:10px;
+  color:var(--am)}
+.tool.hot{border-color:var(--rd)}
+.tool.hot .q i{background:var(--rd)}
+
+/* ---------- thoughts ---------- */
+.toggle{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;
+  font-family:var(--mono);font-size:11px}
+.toggle button{flex:1;padding:9px 6px;background:var(--panel2);border:0;color:var(--mut);
+  cursor:pointer;font-family:var(--mono);font-size:11px}
+.toggle button.on{background:var(--cy);color:#06181d;font-weight:700}
+#thoughts{min-height:190px;margin-top:12px;display:flex;flex-direction:column;gap:7px}
+.th{background:var(--panel2);border:1px solid var(--line);border-left:2px solid var(--dim);
+  border-radius:0 7px 7px 0;padding:8px 11px;font-size:13.5px;animation:pop .35s ease}
+.th.warn{border-left-color:var(--am)}
+.th.good{border-left-color:var(--gr)}
+.th.bad{border-left-color:var(--rd)}
+.th small{display:block;font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:3px}
+@keyframes pop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.silence{color:var(--dim);font-family:var(--mono);font-size:11.5px;text-align:center;
+  padding:26px 10px;font-style:italic}
+
+/* ---------- ripple ---------- */
+.rchoice{display:flex;flex-direction:column;gap:8px}
+.rchoice button{text-align:left;padding:11px 13px;border-radius:8px;border:1px solid var(--line);
+  background:var(--panel2);color:var(--tx);cursor:pointer;font-size:13.5px;font-family:var(--sans)}
+.rchoice button.on{border-color:var(--am);background:#1d1810}
+.rchoice button small{display:block;font-family:var(--mono);font-size:10.5px;color:var(--gr);margin-top:3px}
+.card{margin-top:14px;border:1px solid var(--line);border-radius:9px;padding:14px;
+  background:var(--panel2);min-height:120px}
+.card.face-down{background:repeating-linear-gradient(45deg,#141a21,#141a21 6px,#111720 6px,#111720 12px);
+  display:flex;align-items:center;justify-content:center;text-align:center;color:var(--dim);
+  font-family:var(--mono);font-size:11.5px;line-height:1.7}
+.card.live{border-color:var(--rd);background:#1b1113;animation:pop .4s ease}
+.card .ch{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--rd);margin-bottom:7px}
+.card .trace{margin-top:10px;padding-top:9px;border-top:1px solid #2a2027;
+  font-family:var(--mono);font-size:11px;color:var(--mut)}
+.scrub{display:flex;align-items:center;gap:10px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--mut)}
+
+/* ---------- scales ---------- */
+.scale{border:1px solid var(--line);border-radius:9px;margin-bottom:8px;overflow:hidden;
+  background:var(--panel)}
+.scale summary{padding:13px 14px;cursor:pointer;list-style:none;display:flex;
+  align-items:center;gap:11px}
+.scale summary::-webkit-details-marker{display:none}
+.scale .sk{font-family:var(--mono);font-size:12px;letter-spacing:.14em;flex:0 0 68px}
+.scale .sd{font-size:13px;color:var(--mut);flex:1}
+.scale .tag{font-family:var(--mono);font-size:9.5px;padding:3px 7px;border-radius:4px;
+  letter-spacing:.08em}
+.tag.rct{background:#2a1f0d;color:var(--am);border:1px solid #4a3714}
+.tag.civ{background:#121f2b;color:var(--cy);border:1px solid #1b3a4a}
+.tag.doc{background:#1a1726;color:var(--vi);border:1px solid #2e2745}
+.scale .body{padding:0 14px 14px;font-size:13.5px;color:#93a4b3}
+.scale .body ul{margin:8px 0 0;padding-left:17px}
+.scale .body li{margin-bottom:5px}
+.scale[open] summary{border-bottom:1px solid var(--line)}
+.scale[open] .body{padding-top:13px}
+
+/* ---------- rivals ---------- */
+.rivals{display:flex;flex-direction:column;gap:9px}
+.rival{border:1px solid var(--line);border-radius:9px;background:var(--panel);padding:13px 14px}
+.rival .rn{font-family:var(--mono);font-size:13.5px;margin-bottom:3px}
+.rival .doc{font-size:12.5px;color:var(--mut);margin-bottom:9px}
+.rival .acts{font-size:13px;color:#93a4b3}
+.rival .acts div{padding:4px 0 4px 15px;position:relative}
+.rival .acts div:before{content:'▸';position:absolute;left:0;color:var(--dim)}
+#feed{margin-top:14px;display:flex;flex-direction:column;gap:6px;min-height:160px}
+.fe{font-family:var(--mono);font-size:12px;padding:8px 11px;border-radius:7px;
+  background:var(--panel2);border:1px solid var(--line);animation:pop .35s ease;
+  display:flex;gap:9px}
+.fe .t{color:var(--dim);flex:0 0 52px}
+.fe .m{flex:1;color:#9fb0bf}
+.fe.hit{border-color:#5f3030;background:#1b1113}
+.fe.hit .m{color:#e8a9a5}
+
+/* ---------- scenarios ---------- */
+.deck{position:relative}
+.scen{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:16px}
+.scen .st{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;color:var(--am);
+  text-transform:uppercase;margin-bottom:8px}
+.scen h3{font-size:19px;margin:0 0 9px}
+.scen .sb{font-size:14px;color:#9fb0bf;margin-bottom:13px}
+.scen .opts div{font-size:13px;padding:8px 0 8px 16px;border-top:1px solid #1b2128;
+  position:relative;color:#93a4b3}
+.scen .opts div:before{content:'→';position:absolute;left:0;color:var(--ddim,var(--dim))}
+.scen .opts b{color:var(--tx);font-weight:600}
+.dots{display:flex;gap:5px;justify-content:center;margin-top:13px}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--line);cursor:pointer}
+.dots i.on{background:var(--cy);width:16px;border-radius:3px}
+
+/* ---------- segments ---------- */
+.seg{border:1px solid var(--line);border-radius:8px;background:var(--panel);
+  padding:11px 13px;margin-bottom:7px}
+.seg .sh{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.seg .sn{font-family:var(--mono);font-size:13px}
+.seg .sm{font-family:var(--mono);font-size:10.5px;color:var(--mut)}
+.bars{display:flex;gap:5px;margin:8px 0 7px}
+.bars div{flex:1}
+.bars span{display:block;font-family:var(--mono);font-size:8.5px;color:var(--dim);
+  letter-spacing:.08em;margin-bottom:3px}
+.bars .bb{height:5px;background:#0e1217;border-radius:3px;overflow:hidden}
+.bars .bb i{display:block;height:100%;border-radius:3px}
+.seg .pers{font-size:12.5px;color:#8fa0ae;font-style:italic}
+
+/* ---------- build order ---------- */
+.step{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid #1b2128}
+.step:last-child{border:0}
+.step .n{flex:0 0 26px;height:26px;border-radius:50%;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-family:var(--mono);
+  font-size:11.5px;color:var(--mut)}
+.step.key .n{background:var(--am);border-color:var(--am);color:#1a1205;font-weight:700}
+.step .sc{flex:1}
+.step .sc b{display:block;font-size:14px;margin-bottom:2px}
+.step .sc small{color:var(--mut);font-size:12.5px;line-height:1.45;display:block}
+footer{padding:34px 0 20px;color:var(--dim);font-family:var(--mono);font-size:11px;text-align:center}
+</style>
+</head>
+<body>
+
+<nav><div class="navscroll" id="nav">
+  <a href="#latency" class="on">Latency</a>
+  <a href="#cycle">The Trap</a>
+  <a href="#floor">Fab Floor</a>
+  <a href="#thoughts-s">Thoughts</a>
+  <a href="#ripple">Ripples</a>
+  <a href="#scales">Scales</a>
+  <a href="#rivals">Rivals</a>
+  <a href="#scen">Scenarios</a>
+  <a href="#segs">Markets</a>
+  <a href="#build">Build</a>
+</div></nav>
+
+<header><div class="wrap">
+  <div class="eyebrow">Design explorer · v0.2</div>
+  <h1>SEMI TYCOON<br><span>SIMULATOR</span></h1>
+  <p class="thesis">You run a chip company for forty years. A fab takes four years to build. A chip takes three years to design. <b>By the time any decision pays off, the world that justified it is gone.</b></p>
+  <div class="genre">
+    <div><b>RollerCoaster Tycoon</b> — the world, the floor, the feel</div>
+    <div><b>Civilization</b> — only the rivals</div>
+  </div>
+  <a href="mockups/" style="display:block;margin-top:18px;padding:13px 15px;border-radius:9px;
+     border:1px solid #2e4a56;background:#101c24;text-decoration:none">
+    <span style="font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--am);
+      text-transform:uppercase;display:block;margin-bottom:4px">New · step-through</span>
+    <span style="color:var(--tx);font-size:15px">See what it actually looks like →</span>
+    <span style="display:block;color:var(--mut);font-size:13px;margin-top:3px">
+      13 gameplay mockups in order, with variant toggles. One causal story from first click to post-mortem.</span>
+  </a>
+</div></header>
+
+<!-- ============ 1 LATENCY ============ -->
+<section id="latency"><div class="wrap">
+  <div class="snum">Signature mechanic 01</div>
+  <h2>The <em>Latency Ledger</em></h2>
+  <p class="lede">Every lever has a delay fuse welded to it. You never act on now — you act on a quarter years away, using information you don't have yet.</p>
+
+  <div class="panel">
+    <div class="panel-h"><span>Tap a lever to commit it</span><button class="btn gho" id="clearLev">Clear</button></div>
+    <div id="levers"></div>
+    <div id="shadow">
+      <div style="font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:var(--mut);margin-bottom:10px">SHADOW CALENDAR — WHAT'S IN FLIGHT</div>
+      <div id="shrows"></div>
+      <div class="yrs"><span>Q1 '31</span><span>'32</span><span>'33</span><span>'34</span><span>'35</span><span style="text-align:right">'36</span></div>
+    </div>
+  </div>
+  <p class="note">The main screen is dominated by this strip. The strategic act of the game is reading its shape against the demand forecast — and noticing they don't match. <b>Notice the fuses you can't pull back.</b></p>
+</div></section>
+
+<!-- ============ 2 CYCLE ============ -->
+<section id="cycle"><div class="wrap">
+  <div class="snum">The trap the game is built around</div>
+  <h2>Capacity lands in the <em>wrong world</em></h2>
+  <p class="lede">Building a fab feels safest at the top of the cycle — cash is abundant, customers are begging, the board is thrilled. It arrives <b>twelve quarters later</b>, into a glut, with depreciation attached.</p>
+
+  <div class="panel">
+    <div class="panel-h"><span>Break ground up to 3 times · 18 years</span><span id="fabct" style="color:var(--am)">0 / 3</span></div>
+    <svg id="chart" viewBox="0 0 700 250" preserveAspectRatio="none" style="height:230px"></svg>
+    <div class="legend">
+      <span><i style="background:var(--cy)"></i>Industry demand</span>
+      <span><i style="background:var(--am)"></i>Your capacity</span>
+      <span><i style="background:var(--gr)"></i>Profit</span>
+      <span><i style="background:var(--rd)"></i>Loss</span>
+    </div>
+    <div style="margin-top:14px">
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--mut)">
+        <span>Break ground at:</span><span id="gq" style="color:var(--am)">Q1 2031</span>
+      </div>
+      <input type="range" id="slider" min="0" max="48" value="10">
+      <div class="row" style="margin-top:4px">
+        <button class="btn pri" id="ground">⛏ Break ground</button>
+        <button class="btn gho" id="reset">Reset</button>
+      </div>
+    </div>
+    <div class="gauge">
+      <div><span>Final cash</span><b id="g1" style="color:var(--tx)">—</b></div>
+      <div><span>Lowest cash</span><b id="g2" style="color:var(--rd)">—</b></div>
+      <div><span>Share kept</span><b id="g3" style="color:var(--cy)">—</b></div>
+    </div>
+    <div class="verdict" id="verdict"><b>Awaiting commitment</b>Place a fab and watch where it lands. The fuse is 12 quarters.</div>
+  </div>
+  <p class="note">The sim rewards neither hoarding nor building. Starve your customers and they design you out permanently; overbuild and depreciation eats you in the trough. <b>Only the timing saves you</b> — and the timing has to be decided four years blind.</p>
+</div></section>
+
+<!-- ============ 3 FLOOR ============ -->
+<section id="floor"><div class="wrap">
+  <div class="snum">The RollerCoaster layer</div>
+  <h2>A fab already <em>is</em> a theme park</h2>
+  <p class="lede">Wafer lots are guests. Tools are rides. A queue is a queue. A tool down is a broken ride with a mechanic walking over — except it costs $2M an hour and nobody notices for a quarter.</p>
+
+  <div class="panel">
+    <div class="panel-h"><span>Line running · spot the bottleneck</span><span id="clock" style="color:var(--cy)">day 0</span></div>
+    <div class="floor" id="fabfloor"></div>
+    <div class="row">
+      <button class="btn" id="runfab">▶ Run line</button>
+      <button class="btn gho" id="revealfab">Reveal</button>
+    </div>
+    <div class="verdict" id="fabv"><b>The kill-switch test</b>Can a player with no tutorial look at this for 60 seconds and correctly name the constraint? If yes, the whole interface works. Tap the tool you think it is.</div>
+  </div>
+  <p class="note">You don't need a report to know your implanter is the constraint — <b>you can see the line.</b> That's the entire argument for the spatial layer.</p>
+</div></section>
+
+<!-- ============ 4 THOUGHTS ============ -->
+<section id="thoughts-s"><div class="wrap">
+  <div class="snum">The best idea in the design</div>
+  <h2>Culture drift is <em>visible as silence</em></h2>
+  <p class="lede">RCT told you the truth about your park through guest thoughts. Here, engineers do it — and your management style can switch them off. Flip the toggle and watch what happens to your early-warning system.</p>
+
+  <div class="panel">
+    <div class="panel-h"><span>Psychological safety</span><span id="tcount" style="color:var(--mut)">—</span></div>
+    <div class="toggle">
+      <button id="tSafe" class="on">HIGH · bad news is welcome</button>
+      <button id="tFear">LOW · shoot the messenger</button>
+    </div>
+    <div id="thoughts"></div>
+  </div>
+  <p class="note">Under LOW, the bubbles don't turn angry — they <b>thin out and go quiet.</b> New players will read that as things going well. Six quarters later the errata lands and there is no record of anyone warning you. It costs nothing to implement and it's the scariest thing in the game.</p>
+</div></section>
+
+<!-- ============ 5 RIPPLE ============ -->
+<section id="ripple"><div class="wrap">
+  <div class="snum">Signature mechanic 02</div>
+  <h2>The <em>Ripple Deck</em></h2>
+  <p class="lede">Every decision silently writes a face-down card into a future quarter. You see its <i>shape</i> long before its content — a grey marker on the calendar, a maintenance log slipping, a thought bubble repeating.</p>
+
+  <div class="panel">
+    <div class="panel-h"><span>Q3 2031 · make a call</span></div>
+    <div class="rchoice" id="rchoice"></div>
+    <div class="scrub"><span>Q3 '31</span><input type="range" id="rscrub" min="0" max="10" value="0" style="flex:1"><span id="rq">Q3 '31</span></div>
+    <div id="rcard" class="card face-down">Commit to a decision above,<br>then scrub time forward.</div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn gho" id="defuse" disabled>🔍 Technical debt review — defuse early at 30% cost</button>
+    </div>
+  </div>
+  <p class="note">This makes boring maintenance work <b>mechanically correct</b>, which no tycoon game has ever managed. Good decisions write cards too — the engineer you backed in 2029 invents your packaging advantage in 2036.</p>
+</div></section>
+
+<!-- ============ 6 SCALES ============ -->
+<section id="scales"><div class="wrap">
+  <div class="snum">The interface</div>
+  <h2>Four scales, <em>one world</em></h2>
+  <p class="lede">Mouse-wheel zoom moves between them continuously. Time runs continuously too — pause, 1×, 2×, 4×, with auto-pause on anything that matters. Not turn-based.</p>
+  <div id="scaleList"></div>
+  <p class="note">Weighting: <b>the campus and the floor are where you live.</b> The world map is a logistics and intelligence board you check, not a 4X map you play.</p>
+</div></section>
+
+<!-- ============ 7 RIVALS ============ -->
+<section id="rivals"><div class="wrap">
+  <div class="snum">What Civilization contributes</div>
+  <h2>Rivals that act on <em>your</em> world</h2>
+  <p class="lede">Civ's adversarial nations, but you never leave your campus. They have to reach you where you live: a recruiter's car in your lot, a billboard going up across the street, your supplier's output pre-bought out from under you.</p>
+  <div class="rivals" id="rivalList"></div>
+
+  <div class="panel">
+    <div class="panel-h"><span>Live rival feed · how hostility actually arrives</span><button class="btn gho" id="feedbtn">▶ Run 3 years</button></div>
+    <div id="feed"><div class="silence">The news ticker is the diplomacy screen.</div></div>
+  </div>
+  <p class="note">No diplomacy menu, no war declarations. Just four opponents with legible doctrines, a forty-year arc, and the growing sense that <b>things are being done to you on purpose.</b></p>
+</div></section>
+
+<!-- ============ 8 SCENARIOS ============ -->
+<section id="scen"><div class="wrap">
+  <div class="snum">The writing room</div>
+  <h2>Scenarios with <em>no clean answer</em></h2>
+  <p class="lede">Each one is a decision with a lead time and a ripple. Swipe through.</p>
+  <div class="deck"><div class="scen" id="scenCard"></div><div class="dots" id="scenDots"></div></div>
+</div></section>
+
+<!-- ============ 9 SEGMENTS ============ -->
+<section id="segs"><div class="wrap">
+  <div class="snum">The market</div>
+  <h2>Ten different <em>shapes</em> of business</h2>
+  <p class="lede">Not ten margin numbers — ten personalities. You don't sell chips, you win sockets: a two-year sales cycle that pays out for eight years. Your revenue today was decided in 2019.</p>
+  <div id="segList"></div>
+</div></section>
+
+<!-- ============ 10 BUILD ============ -->
+<section id="build"><div class="wrap">
+  <div class="snum">How to actually make it</div>
+  <h2>Prototype <em>order</em></h2>
+  <p class="lede">Cheapest kill-switches first. Two beloved references can produce a game that does neither well — the schedule is built to find that out early.</p>
+  <div class="panel" id="steps"></div>
+  <p class="note">The honest risk: step 5. If zooming between the floor and the rivalry feels like <b>two games stapled together</b>, we need to know in month three, not month thirty.</p>
+</div></section>
+
+<footer>SEMI TYCOON SIMULATOR · design explorer v0.2<br>built for vmaz · companion to DESIGN.md + UI.md</footer>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s), ce=(t,c)=>{const e=document.createElement(t);if(c)e.className=c;return e};
+const qLabel=q=>'Q'+(q%4+1)+" '"+(31+Math.floor(q/4));
+
+/* ========== 1. LATENCY LEDGER ========== */
+const LEVERS=[
+ {n:'Change price',s:'instant · reversible',q:0,c:'#62c98c'},
+ {n:'Reallocate wafer starts',s:'reversible',q:1,c:'#62c98c'},
+ {n:'Cut test coverage',s:'reversible — consequences are not',q:1,c:'#f0a73d'},
+ {n:'Hire a senior engineer',s:'slowly reversible',q:3,c:'#62c98c'},
+ {n:'Tape out a new chip',s:'IRREVERSIBLE · mask set is sunk',q:8,c:'#e2706b'},
+ {n:'Qualify a new process node',s:'IRREVERSIBLE',q:16,c:'#e2706b'},
+ {n:'Build a fab',s:'CATASTROPHICALLY IRREVERSIBLE',q:20,c:'#e2706b'}
+];
+let inflight=[];
+function drawLevers(){
+  const w=$('#levers');w.innerHTML='';
+  LEVERS.forEach((L,i)=>{
+    const d=ce('div','lev');
+    d.innerHTML=`<div class="lev-n">${L.n}<small>${L.s}</small></div>
+      <div class="fuse"><i style="width:${Math.min(100,L.q/20*100)}%;background:${L.c}"></i></div>
+      <div class="lev-q">${L.q}q</div>`;
+    d.onclick=()=>{ if(!inflight.find(x=>x.i===i)){inflight.push({i,...L});drawShadow();} };
+    w.appendChild(d);
+  });
+}
+function drawShadow(){
+  const w=$('#shrows');w.innerHTML='';
+  if(!inflight.length){w.innerHTML='<div class="silence" style="padding:22px 0">Nothing in flight. Tap a lever.</div>';return}
+  inflight.forEach(f=>{
+    const pct=Math.min(100,f.q/20*100);
+    const r=ce('div','shr');
+    r.innerHTML=`<div class="lbl">${f.n.split(' ').slice(0,2).join(' ')}</div>
+      <div class="track"><i style="left:0;width:${pct}%;background:${f.c}"></i>
+      <b style="left:calc(${pct}% - 2px);background:${f.c}"></b></div>`;
+    w.appendChild(r);
+  });
+}
+$('#clearLev').onclick=()=>{inflight=[];drawShadow()};
+drawLevers();drawShadow();
+
+/* ========== 2. CYCLE GAME ========== */
+const QN=72, LEAD=12, PER=24, CAP0=130, FAB=55, CASH0=2200, CREDIT=-1500, MAXG=48;
+const cyc=q=>Math.sin(2*Math.PI*(q-3)/PER);
+const demand=q=>95*(1+0.75*cyc(q)+0.05*q);
+const pricer=q=>0.95+0.58*cyc(q);        // industry cycle sets price, not your capacity
+let fabs=[];
+function sim(fs){
+  let share=1, cash=CASH0, worst=1e9, low=1e9, bust=null, hist=[];
+  for(let q=0;q<QN;q++){
+    const online=fs.filter(g=>q>=g+LEAD).length;
+    const cap=CAP0+FAB*online;
+    const d=demand(q)*share;
+    const units=Math.min(d,cap);
+    const p=units*pricer(q)*10 - units*5.5 - cap*2.2
+            - fs.filter(g=>q>=g&&q<g+LEAD).length*100;
+    if(d>cap) share*=(1-0.45*(d-cap)/d);          // designed out when you can't supply
+    else share=Math.min(1,share*(1+0.09*(cap-d)/cap));  // won back slowly, with slack
+    cash+=p; worst=Math.min(worst,p); low=Math.min(low,cash);
+    if(cash<CREDIT&&bust===null) bust=q;
+    hist.push({q,d:demand(q),cap,p,u:units/cap});
+  }
+  return {cash,worst,share,low,bust,hist};
+}
+let best=null;
+(function(){ // brute force optimum, 0-3 fabs from q0..MAXG
+  let b={cash:-1e9,f:[]};
+  const opts=[];for(let i=0;i<=MAXG;i++)opts.push(i);
+  const test=f=>{const r=sim(f);if(r.bust===null&&r.cash>b.cash)b={cash:r.cash,f:f.slice()}};
+  test([]);
+  for(const a of opts){test([a]);
+    for(const c of opts){if(c<a)continue;test([a,c]);
+      for(const e of opts){if(e<c)continue;test([a,c,e])}}}
+  best=b;
+})();
+function fmt(n){const s=n<0?'-':'';n=Math.abs(n);
+  return s+'$'+(n>=1000?(n/1000).toFixed(1)+'B':Math.round(n)+'M')}
+function draw(){
+  const r=sim(fabs), H=r.hist, W=700,Ht=250, pad=6;
+  const maxv=Math.max(...H.map(h=>Math.max(h.d,h.cap)))*1.08;
+  const x=q=>q/(QN-1)*(W-20)+10, y=v=>Ht-34-(v/maxv)*(Ht-50);
+  let s='';
+  // profit bars
+  const mp=Math.max(...H.map(h=>Math.abs(h.p)))||1;
+  H.forEach(h=>{const hh=Math.abs(h.p)/mp*26;
+    s+=`<rect x="${x(h.q)-4}" y="${h.p>=0?Ht-30-hh:Ht-30}" width="8" height="${hh}" fill="${h.p>=0?'#62c98c':'#e2706b'}" opacity=".6"/>`});
+  s+=`<line x1="10" y1="${Ht-30}" x2="${W-10}" y2="${Ht-30}" stroke="#232b34"/>`;
+  // capacity step
+  let cp='';H.forEach((h,i)=>{cp+=(i?'L':'M')+x(h.q)+','+y(h.cap)+' '});
+  s+=`<path d="${cp}" fill="none" stroke="#f0a73d" stroke-width="2.5" stroke-linejoin="round"/>`;
+  // demand
+  let dp='';H.forEach((h,i)=>{dp+=(i?'L':'M')+x(h.q)+','+y(h.d)+' '});
+  s+=`<path d="${dp}" fill="none" stroke="#49c5dd" stroke-width="2"/>`;
+  // fab markers
+  fabs.forEach(g=>{
+    s+=`<line x1="${x(g)}" y1="20" x2="${x(g)}" y2="${Ht-30}" stroke="#f0a73d" stroke-width="1" stroke-dasharray="3 3" opacity=".7"/>`;
+    s+=`<text x="${x(g)}" y="15" fill="#f0a73d" font-size="11" font-family="monospace" text-anchor="middle">⛏</text>`;
+    const a=g+LEAD; if(a<QN){
+      s+=`<line x1="${x(g)}" y1="26" x2="${x(a)}" y2="26" stroke="#f0a73d" stroke-width="1" opacity=".45"/>`;
+      s+=`<polygon points="${x(a)},26 ${x(a)-6},22 ${x(a)-6},30" fill="#f0a73d" opacity=".9"/>`;}
+  });
+  $('#chart').innerHTML=s;
+  $('#g1').textContent=fmt(r.cash); $('#g1').style.color=r.cash>0?'var(--gr)':'var(--rd)';
+  $('#g2').textContent=fmt(r.low);
+  $('#g3').textContent=Math.round(r.share*100)+'%';
+  $('#fabct').textContent=fabs.length+' / 3';
+  // verdict
+  const v=$('#verdict'); const gap=best.cash-r.cash;
+  const arr=fabs.map(g=>qLabel(g+LEAD)).join(', ');
+  const optLine='Optimum was '+fmt(best.cash)+', breaking ground '+best.f.map(qLabel).join(', ')+' — so capacity lands '+best.f.map(x=>qLabel(x+LEAD)).join(', ')+'.';
+  if(r.bust!==null){v.className='verdict bad';v.innerHTML='<b>Bankrupt in '+qLabel(r.bust)+'</b>You committed capex into a downturn and the credit line ran out before the fabs could earn. '+optLine}
+  else if(!fabs.length){v.className='verdict bad';v.innerHTML='<b>Designed out · share fell to '+Math.round(r.share*100)+'%</b>You kept margin high and never added capacity, so every time demand outran you a customer qualified someone else — permanently. '+optLine}
+  else if(gap<2000){v.className='verdict good';v.innerHTML='<b>Well timed — within '+fmt(gap)+' of optimal</b>Your capacity arrived '+arr+', on the rising limb, and you held '+Math.round(r.share*100)+'% of your share. Note when you had to <i>commit</i>: while the market was still rolling over, and the board was asking why.'}
+  else{v.className='verdict bad';v.innerHTML='<b>Mistimed by '+fmt(gap)+'</b>Capacity arrived '+arr+'. '+optLine+' <b>The trap: by the time the bottom feels safe to build, you have already missed it.</b> You have to commit on the way down.'}
+}
+$('#slider').oninput=e=>$('#gq').textContent=qLabel(+e.target.value);
+$('#ground').onclick=()=>{if(fabs.length<3){fabs.push(+$('#slider').value);fabs.sort((a,b)=>a-b);draw()}};
+$('#reset').onclick=()=>{fabs=[];draw()};
+draw();
+
+/* ========== 3. FAB FLOOR ========== */
+const TOOLS=[
+ {n:'CLEAN 01',r:1.00},{n:'LITHO 02',r:0.92},{n:'ETCH 01',r:0.95},
+ {n:'IMPLANT 01',r:0.42},{n:'CMP 03',r:0.88},{n:'METRO 02',r:1.00}];
+let qs=TOOLS.map(()=>0), day=0, fabTimer=null, guessed=false;
+qs[0]=4;
+function drawFloor(){
+  const f=$('#fabfloor');f.innerHTML='';
+  TOOLS.forEach((T,i)=>{
+    const d=ce('div','tool'+(qs[i]>9?' hot':''));
+    let dots='';for(let k=0;k<Math.min(qs[i],24);k++)dots+='<i></i>';
+    d.innerHTML=`<div class="tn">${T.n}</div><div class="qc">${qs[i]||''}</div>
+      <div class="q">${dots}</div><div class="bar"><i style="width:${Math.round(T.r*100)}%"></i></div>`;
+    d.onclick=()=>guess(i);
+    f.appendChild(d);
+  });
+  $('#clock').textContent='day '+day;
+}
+function guess(i){
+  guessed=true;
+  const v=$('#fabv');
+  if(i===3){v.className='verdict good';v.innerHTML='<b>Correct — IMPLANT 01</b>42% throughput, and every lot on the line is queued behind it. You read that off the picture, not a report. <i>That</i> is the design brief for the whole interface.'}
+  else{v.className='verdict bad';v.innerHTML=`<b>${TOOLS[i].n} is not it</b>It's running at ${Math.round(TOOLS[i].r*100)}% and its queue is short. Look for where the lots are piling up — the constraint is the one with the line in front of it.`}
+}
+function tick(){
+  day+=1;
+  for(let i=TOOLS.length-1;i>=0;i--){
+    const move=Math.random()<TOOLS[i].r?1:0;
+    if(move&&qs[i]>0){qs[i]--; if(i<TOOLS.length-1)qs[i+1]++;}
+  }
+  qs[0]+=1;
+  drawFloor();
+}
+$('#runfab').onclick=e=>{
+  if(fabTimer){clearInterval(fabTimer);fabTimer=null;e.target.textContent='▶ Run line'}
+  else{fabTimer=setInterval(tick,140);e.target.textContent='⏸ Pause'}
+};
+$('#revealfab').onclick=()=>guess(3);
+drawFloor();
+
+/* ========== 4. THOUGHTS ========== */
+const SAFE=[
+ ['Scanner 04 overlay is drifting. I have flagged it three times.','warn','Litho · 11 yrs'],
+ ['We are shipping Kestrel-3 at 61% coverage. I signed the waiver under protest.','warn','Validation · 6 yrs'],
+ ['Nobody has touched the failure-analysis backlog since the layoffs.','warn','FA · 4 yrs'],
+ ['Bay 2 particle counts are creeping. Not out of spec. Creeping.','warn','Process · 9 yrs'],
+ ['This is the best silicon I have ever worked on.','good','Design · 14 yrs'],
+ ['Second interview at the place across the street went well.','bad','Litho · 11 yrs'],
+ ['The implant tool PM is 41 days overdue on a 30-day interval.','warn','Maintenance · 3 yrs'],
+ ['I think the via resistance issue and the overlay issue are the same issue.','good','FA · 8 yrs']];
+const FEAR=[
+ ['Numbers look fine this quarter.','','Litho · 11 yrs'],
+ ['','',''],['','',''],
+ ['Shipped on schedule.','','Validation · 6 yrs'],
+ ['','',''],['','',''],['','',''],
+ ['No concerns to raise.','','Process · 9 yrs'],
+ ['','',''],['','','']];
+let tMode='safe', tTimer=null, tIdx=0, tShown=0;
+function resetThoughts(m){
+  tMode=m;tIdx=0;tShown=0;$('#thoughts').innerHTML='';
+  $('#tSafe').className=m==='safe'?'on':'';$('#tFear').className=m==='fear'?'on':'';
+  if(tTimer)clearInterval(tTimer);
+  if(m==='fear')$('#thoughts').innerHTML='<div class="silence">…</div>';
+  tTimer=setInterval(pushThought,1100);
+}
+function pushThought(){
+  const src=tMode==='safe'?SAFE:FEAR;
+  const t=src[tIdx%src.length];tIdx++;
+  if(!t[0]){ $('#tcount').textContent=tShown+' raised'; return }
+  const sil=$('#thoughts .silence'); if(sil)sil.remove();
+  const d=ce('div','th '+(t[1]||''));
+  d.innerHTML=t[0]+'<small>'+t[2]+'</small>';
+  $('#thoughts').prepend(d);
+  while($('#thoughts').children.length>5)$('#thoughts').lastChild.remove();
+  tShown++;$('#tcount').textContent=tShown+' raised';
+}
+$('#tSafe').onclick=()=>resetThoughts('safe');
+$('#tFear').onclick=()=>resetThoughts('fear');
+resetThoughts('safe');
+
+/* ========== 5. RIPPLE ========== */
+const RIPS=[
+ {n:'Cut the validation team 40% to make the quarter.',g:'+$180M this quarter',land:10,
+  h:'Errata discovered · Q1 2034',
+  b:'Cache coherency bug in Kestrel-3. Shipped into 2.1M automotive units. Field recall exposure <b>$340M</b>, and the OEM re-sources you out of their 2037 platform.',
+  t:'TRACED TO: validation cuts, Q3 2031'},
+ {n:'Skip the preventive maintenance cycle to hold output.',g:'+4% wafer starts',land:5,
+  h:'Chamber excursion · Q4 2032',
+  b:'Particle excursion in Bay 2 over eleven days before metrology caught it. <b>Six weeks of WIP scrapped.</b> Yield on the node regresses 9 points and takes three quarters to climb back.',
+  t:'TRACED TO: deferred PM, Q3 2031'},
+ {n:'Back the engineer the board wanted fired.',g:'−$0 · costs you a board ally',land:9,
+  h:'Packaging advantage · Q4 2033',
+  b:'Her hybrid-bonding work becomes the basis of your chiplet stack. You are <b>eighteen months ahead</b> of everyone on advanced packaging and nobody can buy their way in.',
+  t:'TRACED TO: retention call, Q3 2031',good:true},
+ {n:'Route restricted parts through a third-country distributor.',g:'+31% revenue retained',land:8,
+  h:'Investigation opened · Q3 2033',
+  b:'Commerce opens an inquiry. Legal costs, an export privilege suspension pending review, and your General Counsel resigns. <b>Two years of leading-edge export access frozen.</b>',
+  t:'TRACED TO: distributor routing, Q3 2031'}];
+let rPick=null, rDefused=false;
+function drawRips(){
+  const w=$('#rchoice');w.innerHTML='';
+  RIPS.forEach((R,i)=>{
+    const b=ce('button',rPick===i?'on':'');
+    b.innerHTML=R.n+'<small>'+R.g+'</small>';
+    b.onclick=()=>{rPick=i;rDefused=false;$('#rscrub').value=0;$('#defuse').disabled=false;drawRips();drawCard()};
+    w.appendChild(b);
+  });
+}
+function drawCard(){
+  const s=+$('#rscrub').value, c=$('#rcard');
+  $('#rq').textContent=qLabel(2+s*4>47?47:2+s);
+  $('#rq').textContent="Q"+((2+s)%4+1)+" '"+(31+Math.floor((2+s)/4));
+  if(rPick===null){c.className='card face-down';c.innerHTML='Commit to a decision above,<br>then scrub time forward.';return}
+  const R=RIPS[rPick];
+  if(rDefused){c.className='card';c.style.borderColor='#2e5f45';
+    c.innerHTML=`<div class="ch" style="color:var(--gr)">Defused · resolved early</div>You flipped the card four quarters early and spent <b>30%</b> of the eventual cost to fix it quietly. No headline, no recall, no board questions. Nobody will ever credit you for this.<div class="trace">The entire argument for doing boring maintenance work.</div>`;return}
+  if(s<R.land){c.className='card face-down';
+    c.innerHTML=`▒ UNRESOLVED CONSEQUENCE<br>lands ${qLabel(2+R.land)} · origin: ${rPick===2?'People':rPick===3?'Legal':'Operations'}<br>severity: unknown<br><br>${R.land-s} quarters out`;return}
+  c.className='card live';if(R.good)c.style.borderColor='#2e5f45';
+  c.innerHTML=`<div class="ch" ${R.good?'style="color:var(--gr)"':''}>${R.h}</div>${R.b}<div class="trace">${R.t}</div>`;
+}
+$('#rscrub').oninput=drawCard;
+$('#defuse').onclick=()=>{if(rPick!==null){rDefused=true;drawCard()}};
+drawRips();drawCard();
+
+/* ========== 6. SCALES ========== */
+const SCALES=[
+ {k:'WORLD',t:'civ',d:'Logistics & intelligence board',
+  b:['Supply threads you can watch thicken — photoresist from one Japanese town, neon from one region, EUV from one building.','Rival sites, fogged. A teardown sharpens the picture.','Sanction shading drifts over regions. When one goes red, <b>the threads through it visibly snap.</b>','Site selection for a new fab: talent, power, water, seismic, politics, subsidy.']},
+ {k:'CAMPUS',t:'rct',d:'Your home. Buildable, walkable.',
+  b:['Place fab shells, design centres, validation labs, packaging & test, failure analysis, bring-up lab, the loading dock.','<b>Construction is the Latency Ledger, physically.</b> Pit → foundation → shell → cleanroom → tool move-in → qual. Four years you can watch.','Cancel mid-build and the scar stays on your campus for the rest of the run.','Engineers walk between buildings. Seasons pass. Trees you planted in 1998 are large in 2031.']},
+ {k:'FLOOR',t:'rct',d:'Inside the fab. Roof cut away.',
+  b:['Bays, tool rows, overhead FOUP transport, bunny suits colour-coded by function.','Lots queue in front of tools. A bottleneck is <i>visible as a pile-up</i>.','Placement is a real puzzle: a scanner near the loading dock picks up vibration, and that becomes a hidden defect mechanism you spend three quarters hunting.','40–80 clickable tools, not 1,200. Dense enough to feel real, sparse enough to click.']},
+ {k:'DESK',t:'doc',d:'Your office. Paper and a ticking clock.',
+  b:['The Shadow Calendar is a literal Gantt chart on the wall, with magnets.','Two roadmaps hang side by side: what you believe, and the framed printout of what you <i>promised</i> at analyst day. The gap between them is the game\'s central anxiety, rendered as wall decor.','Old forecasts stack up so you can see how wrong you were.','The board meets one floor up. You walk there.']}];
+(function(){const w=$('#scaleList');
+ SCALES.forEach((S,i)=>{const d=ce('details','scale');if(i<2)d.open=true;
+  d.innerHTML=`<summary><div class="sk" style="color:var(--${S.t==='rct'?'am':S.t==='civ'?'cy':'vi'})">${S.k}</div>
+    <div class="sd">${S.d}</div><div class="tag ${S.t}">${S.t==='rct'?'RCT':S.t==='civ'?'CIV':'DOCS'}</div></summary>
+    <div class="body"><ul>${S.b.map(x=>'<li>'+x+'</li>').join('')}</ul></div>`;
+  w.appendChild(d)})})();
+
+/* ========== 7. RIVALS ========== */
+const RIVALS=[
+ {n:'THE SCALE MONOPOLIST',c:'#e2706b',d:'Builds capacity recklessly, crashes ASPs, survives on balance sheet.',
+  a:['Announces a 3-fab expansion the quarter you commit to one','Pre-buys three years of your substrate supplier\'s output','Out-waits you in every glut']},
+ {n:'THE NODE PURIST',c:'#49c5dd',d:'Always bleeding-edge, chronically cash-poor.',
+  a:['Opens a design centre nine miles from yours and takes your litho lead','Wins every premium socket for a decade','Is purchasable at the bottom — if you were disciplined at the top']},
+ {n:'THE TRAILING-EDGE MILKER',c:'#62c98c',d:'Never advances. Prints money. Buys your cast-off fabs.',
+  a:['Quietly owns the automotive MCU business you abandoned','Bids for your mothballed 28nm fab at the worst possible moment','Is never your problem, and outlives you']},
+ {n:'THE NATIONAL CHAMPION',c:'#a98ae0',d:'Subsidised. Cannot fail. Prices irrationally.',
+  a:['Undercuts you 40% below cash cost in a segment you built','Gets your export licence revoked by being politically useful','You cannot beat them. You route around them.']}];
+(function(){const w=$('#rivalList');
+ RIVALS.forEach(R=>{const d=ce('div','rival');
+  d.innerHTML=`<div class="rn" style="color:${R.c}">${R.n}</div><div class="doc">${R.d}</div>
+   <div class="acts">${R.a.map(x=>'<div>'+x+'</div>').join('')}</div>`;w.appendChild(d)})})();
+
+const FEED=[
+ ['Q1 31','Hoshino announces $14B capex. Three fabs. Analysts call it reckless.',0],
+ ['Q2 31','A recruiter\'s car has been in your north lot four times this month.',0],
+ ['Q2 31','Dr. Wen Li declined the retention package.',1],
+ ['Q3 31','Billboard going up across the street. It is a hiring ad. It names your node.',0],
+ ['Q4 31','Your ABF substrate supplier: "we are allocated through 2034."',1],
+ ['Q1 32','Lost the NorthStar socket by 2%. Third time in a row by almost exactly 2%.',1],
+ ['Q2 32','Kaito Micro taped out a part with suspiciously convergent specs.',1],
+ ['Q3 32','Rumour (confidence: medium): Hoshino is ~70% toward First EUV Production.',0],
+ ['Q4 32','Hoshino cuts price 40% below your cash cost. Their government does not mind.',1],
+ ['Q1 33','Your mothballed 28nm fab has one bidder. You know exactly who.',1],
+ ['Q2 33','Three more engineers gone. All litho. All to the same address.',1],
+ ['Q3 33','Hoshino lights first EUV silicon. You were eleven months behind.',1]];
+let feedI=0,feedT=null;
+$('#feedbtn').onclick=e=>{
+  if(feedT){clearInterval(feedT);feedT=null;e.target.textContent='▶ Run 3 years';return}
+  $('#feed').innerHTML='';feedI=0;e.target.textContent='⏸ Pause';
+  feedT=setInterval(()=>{
+    if(feedI>=FEED.length){clearInterval(feedT);feedT=null;$('#feedbtn').textContent='↻ Replay';return}
+    const f=FEED[feedI++];const d=ce('div','fe'+(f[2]?' hit':''));
+    d.innerHTML=`<div class="t">${f[0]}</div><div class="m">${f[1]}</div>`;
+    $('#feed').prepend(d);
+    while($('#feed').children.length>6)$('#feed').lastChild.remove();
+  },900);
+};
+
+/* ========== 8. SCENARIOS ========== */
+const SCEN=[
+ {t:'Scenario 01',h:'The Whale',b:'NorthStar is 44% of your revenue. They demand a 20% price cut and "second-source qualification" — which means they are teaching your competitor to build your part.',
+  o:['<b>Eat it.</b> Margin collapses, you survive, they own you a little more each year.','<b>Refuse.</b> You lose them over six quarters and the hole is bigger than your profit.','<b>Volume commitment in exchange.</b> They will break it, and the contract will not help you.','<b>Start courting their competitor now.</b> They will find out. That is a different game.']},
+ {t:'Scenario 02',h:'The Fire',b:'A chemical supplier\'s plant burns down. 40% of world photoresist, four quarters to restore. You hold eleven weeks. So does a competitor who serves a customer you have wanted for a decade.',
+  o:['<b>Sell them resist at cost.</b> Make a friend who remembers for fifteen years.','<b>Hoard.</b> Correct, boring, and you keep building.','<b>Sell at 6× into a desperate market.</b> Enormous quarter. You are the industry\'s villain until you retire.']},
+ {t:'Scenario 03',h:'The Allocation',b:'Capacity crunch. You have 60% of the wafers your customers want. Rank them. Cars are arriving at your lobby.',
+  o:['<b>The automotive OEM</b> will sue and never return.','<b>The hyperscaler</b> will build in-house if starved, permanently.','<b>The three-person startup</b> is building the accelerator that defines 2035. You are not told which one that is. Faint tell: their order grew 300% off a tiny base — which is also what every doomed startup looks like.']},
+ {t:'Scenario 04',h:'The Node Cliff',b:'3nm costs $6B to develop, 4× the mask cost, and three customers on Earth can afford parts on it. Follow, or stop and become a very profitable trailing-edge specialist forever?',
+  o:['<b>Follow.</b> Stay relevant. Bet the company every four years, forever.','<b>Stop.</b> This must be a legitimately winning strategy or the treadmill is a chore, not a choice. Trailing edge is where the margin actually is. The cost is that you will never matter again — and your Founder board member will say so out loud, every meeting.']},
+ {t:'Scenario 05',h:'The Threshold',b:'New rule: devices over 4,800 TOPS/mm² may not be exported to Region B. Your Hawk-5 is at 5,200. That is 31% of revenue.',
+  o:['<b>De-content it.</b> Spend three quarters and your best engineers deliberately making your product worse.','<b>Ship as-is, lose the region.</b> Clean, honest, expensive.','<b>Route through a distributor in Region C.</b> Revenue now. <i>Writes a hidden card.</i>','<b>Lobby.</b> 40% chance of a two-quarter delay.<br><br>Eighteen months later the threshold moves to 3,200 and your de-contented part is illegal too. <b>The game does this on purpose.</b>']},
+ {t:'Scenario 06',h:'The Ghost Order',b:'A customer\'s orders double. Is it real demand — or are they double-ordering across every supplier because lead times scared them?',
+  o:['<b>Build for it.</b> If it is phantom, you are holding the inventory when it evaporates.','<b>Ignore it.</b> If it is real, you just handed a competitor a decade-long socket.','The tell exists in the data — <b>if you bought the right information three quarters ago.</b>']}];
+let sI=0;
+function drawScen(){
+  const S=SCEN[sI];
+  $('#scenCard').innerHTML=`<div class="st">${S.t}</div><h3>${S.h}</h3><div class="sb">${S.b}</div>
+    <div class="opts">${S.o.map(x=>'<div>'+x+'</div>').join('')}</div>`;
+  $('#scenDots').innerHTML=SCEN.map((_,i)=>`<i class="${i===sI?'on':''}" data-i="${i}"></i>`).join('');
+  $('#scenDots').querySelectorAll('i').forEach(d=>d.onclick=()=>{sI=+d.dataset.i;drawScen()});
+}
+(function(){let x0=null;const el=$('#scenCard');
+ el.addEventListener('touchstart',e=>x0=e.touches[0].clientX,{passive:true});
+ el.addEventListener('touchend',e=>{if(x0===null)return;
+  const dx=e.changedTouches[0].clientX-x0;
+  if(Math.abs(dx)>45){sI=(sI+(dx<0?1:SCEN.length-1))%SCEN.length;drawScen()}x0=null},{passive:true});
+ el.addEventListener('click',()=>{sI=(sI+1)%SCEN.length;drawScen()});})();
+drawScen();
+
+/* ========== 9. SEGMENTS ========== */
+const SEGS=[
+ {n:'MOBILE AP',v:95,m:25,q:80,p:'Annual design-win cliff. Lose it and you lose everything for a year.'},
+ {n:'AUTOMOTIVE MCU',v:55,m:70,q:100,p:'Never leaves you — unless you fail them once. Then never again.'},
+ {n:'DATACENTER CPU',v:50,m:92,q:55,p:'Four customers on Earth, all of whom want to build it themselves.'},
+ {n:'AI ACCELERATOR',v:85,m:95,q:20,p:'Appears mid-game, 10×s, then becomes infrastructure or craters.'},
+ {n:'INDUSTRIAL',v:22,m:80,q:75,p:'Thousands of tiny loyal customers. Recession-proof. Unglamorous.'},
+ {n:'PC / CLIENT',v:80,m:30,q:50,p:'Brutally cyclical, and one OEM is 30% of it.'},
+ {n:'POWER SiC/GaN',v:40,m:72,q:100,p:'An entirely different fab. A real second-company decision.'},
+ {n:'MEMORY',v:100,m:50,q:15,p:'A commodity casino. −40% to +60% margin. Optional mode for lunatics.'}];
+(function(){const w=$('#segList');
+ SEGS.forEach(S=>{const d=ce('div','seg');
+  d.innerHTML=`<div class="sh"><div class="sn">${S.n}</div></div>
+   <div class="bars">
+     <div><span>VOLUME</span><div class="bb"><i style="width:${S.v}%;background:var(--cy)"></i></div></div>
+     <div><span>MARGIN</span><div class="bb"><i style="width:${S.m}%;background:var(--gr)"></i></div></div>
+     <div><span>QUAL BURDEN</span><div class="bb"><i style="width:${S.q}%;background:var(--am)"></i></div></div>
+   </div><div class="pers">${S.p}</div>`;
+  w.appendChild(d)})})();
+
+/* ========== 10. BUILD ========== */
+const STEPS=[
+ ['Spreadsheet sim','Cycle + capacity + depreciation + yield, in a terminal. If the capacity-timing trap is already painful and fun here, the game works. If not, nothing else saves it.',0],
+ ['The FLOOR toy','One fab, 20 tools, lots flowing, queues forming, one clickable tool window. No strategy layer at all. <b>Kill-switch: can a new player name the bottleneck in 60 seconds?</b>',1],
+ ['Engineer thoughts','Thirty authored lines, flight risk, morale, and the silence mechanic. Prove the walk-the-floor loop.',0],
+ ['Join the clocks','Quarterly layer under the floor toy. Campus scale with visible four-year construction.',0],
+ ['The rivalry layer','One rival acting on your world: poaching, pre-buying, undercutting. <b>Test whether zooming between altitudes feels like one game or two.</b> This is the project\'s biggest risk — do not leave it for last.',1],
+ ['Sockets & design wins','Turn revenue into a five-year-lagged object. The socket wall.',0],
+ ['Geopolitics','The export-control threshold mechanic first — it is the most novel thing in the design.',0],
+ ['Espionage','Last. Most elaborate, least load-bearing.',0]];
+(function(){const w=$('#steps');
+ STEPS.forEach((S,i)=>{const d=ce('div','step'+(S[2]?' key':''));
+  d.innerHTML=`<div class="n">${i+1}</div><div class="sc"><b>${S[0]}</b><small>${S[1]}</small></div>`;
+  w.appendChild(d)})})();
+
+/* ========== NAV ========== */
+const secs=[...document.querySelectorAll('section')], links=[...document.querySelectorAll('#nav a')];
+addEventListener('scroll',()=>{
+  let cur=0;secs.forEach((s,i)=>{if(s.getBoundingClientRect().top<140)cur=i});
+  links.forEach((l,i)=>l.classList.toggle('on',i===cur));
+},{passive:true});
+</script>
+</body>
+</html>
