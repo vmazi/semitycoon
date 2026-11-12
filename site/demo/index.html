@@ -200,9 +200,42 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 .obtn:disabled{opacity:.4}
 .hint{margin-top:11px;font-size:13px;color:var(--mut);line-height:1.6}
 .hint b{color:var(--am)}
+
+/* ---------- tutorial ---------- */
+#tutWrap{position:fixed;inset:0;z-index:60;pointer-events:none;display:none}
+#tutWrap.on{display:block}
+#tutHole{position:absolute;border-radius:10px;
+  box-shadow:0 0 0 9999px rgba(5,7,10,.86), 0 0 0 2px var(--cy) inset;
+  transition:all .28s cubic-bezier(.4,0,.2,1);pointer-events:none}
+#tutBox{position:absolute;left:10px;right:10px;background:var(--panel);
+  border:1px solid #2e4a56;border-radius:12px;padding:15px 16px;pointer-events:auto;
+  box-shadow:0 14px 40px rgba(0,0,0,.7);max-width:430px;margin:0 auto;
+  transition:top .28s cubic-bezier(.4,0,.2,1)}
+#tutBox .tn{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--am);
+  text-transform:uppercase;margin-bottom:6px}
+#tutBox h3{font-family:var(--mono);font-size:15px;margin:0 0 7px;color:var(--cy)}
+#tutBox p{font-size:13.5px;color:#9fb0bf;margin:0 0 10px;line-height:1.55}
+#tutBox p b{color:var(--tx)}
+#tutRow{display:flex;gap:7px;align-items:center}
+#tutRow button{font-family:var(--mono);font-size:11.5px;padding:10px 14px;border-radius:7px;
+  border:1px solid var(--line);background:var(--panel2);color:var(--tx);cursor:pointer}
+#tutRow .next{flex:1;background:var(--cy);border-color:var(--cy);color:#06181d;font-weight:700}
+#tutRow .skip{color:var(--mut)}
+#tutDots{font-family:var(--mono);font-size:10px;color:var(--dim);margin-left:2px}
+.tuthint{font-family:var(--mono);font-size:10px;color:var(--mut);
+  border:1px dashed var(--line);border-radius:6px;padding:4px 8px;cursor:pointer;background:transparent}
 </style>
 </head>
 <body>
+
+<div id="tutWrap"><div id="tutHole"></div><div id="tutBox">
+  <div class="tn" id="tutN"></div><h3 id="tutH"></h3><p id="tutP"></p>
+  <div id="tutRow">
+    <button class="skip" data-act="tutSkip">Skip</button>
+    <button data-act="tutBack">Back</button>
+    <button class="next" data-act="tutNext">Next</button>
+    <span id="tutDots"></span>
+  </div></div></div>
 
 <div id="errbar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99;
   background:#5f1f1f;color:#ffd9d6;font-family:ui-monospace,monospace;font-size:11px;
@@ -210,7 +243,7 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 
 <div class="top">
   <a href="../design/">← design</a><a href="../mockups/">mockups</a>
-  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b14</span></h1>
+  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b16</span></h1>
 </div>
 
 <div class="wrap">
@@ -219,6 +252,7 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
     <button id="b1" class="on">1×</button>
     <button id="b3">3×</button>
     <button id="bReset">Restart</button>
+    <button class="tuthint" data-act="tutStart">?</button>
   </div>
 
   <div class="erabar">
@@ -1004,7 +1038,12 @@ function showIntro(){
     <button class="obtn" data-act="startPlay">Begin the Mainframe era</button>`;
   $('over').style.display='block'; $('over').scrollTop=0;
 }
-function startPlay(){S.genBudget=3;showGen(null,0,true)}
+function startPlay(){
+  S.genBudget=3;
+  let seen=false; try{seen=localStorage.getItem('st_tut')==='1'}catch(e){}
+  if(!seen){ $('over').style.display='none'; tutStart(); S.pendingFounding=true; return }
+  showGen(null,0,true);
+}
 function hardReset(){reset();showIntro();setPauseBtn()}
 
 /* ================= DRAW ================= */
@@ -1188,6 +1227,69 @@ function frame(now){
   requestAnimationFrame(frame);          // never let one bad frame stop the loop
 }
 
+
+/* ================= TUTORIAL =================
+   Spotlights a real element and explains it. Updates only on step change,
+   never per frame. */
+const TUT=[
+ {t:null, n:'How you win', h:'Five eras. Win the most.',
+  p:'Mainframe, PC, networking, mobile, cloud. Each era goes to whoever holds the most of <b>that era\'s market</b> when it ends. 1st = 3 points, 2nd = 2, 3rd = 1. Most points after five eras wins.'},
+ {t:'.erabar', n:'Step 1', h:'The era you are in',
+  p:'The era name, the years, and <b>what this era is won on</b> — Mainframe rewards reliability, PC rewards cost and volume. The bar is time remaining, and the ticks are the four quarterly planning points.'},
+ {t:'.score', n:'Step 2', h:'You and three rivals',
+  p:'Points so far, <b>sockets per second</b>, and capability in stars. Each rival runs one fixed doctrine: <b>Hoshino</b> always builds for now, <b>Kaito</b> always builds for next, <b>Meridian</b> hedges. Watch Hoshino win early and collapse.'},
+ {t:'.hud', n:'Step 3', h:'Capital, market, reputation, rate',
+  p:'Capital pays for ad-hoc actions. The pie is <b>this era\'s market</b> — yours against the other three and the unclaimed remainder. Sockets/sec is the number that actually decides the era, and it shows the best rival underneath so you always know if you are ahead.'},
+ {t:'.gauges', n:'Step 4', h:'The plant — you cannot touch it directly',
+  p:'Coverage, maintenance and output are <b>moved only by your decisions</b>, never by hand. Each line tells you what it is doing right now: how many defects you catch, what share of units are born bad, units per second.'},
+ {t:'.acts', n:'Step 5', h:'Ad-hoc actions',
+  p:'Paid for out of capital, <b>once each per era</b>. Overtime, an emergency maintenance sweep, a price war, poaching a rival\'s lead. How hard you work this layer also feeds your planning budget between eras.'},
+ {t:'.exec', n:'Step 6', h:'Executive focus — this costs you, not the company',
+  p:'A hand of three cards, two plays an era. <b>Burnout at 100 ends the run.</b> <b>Contention</b> raises your defect rate and eats planning picks. You can ask for different cards any time — rerolling costs burnout, not money.'},
+ {t:'canvas', n:'Step 7', h:'The line, and the world',
+  p:'Top: fab, test, pack, ship. Blue squares are good units, <b>amber ones are defective</b>. Test catches some. Below is the world — whatever escapes flies out there and lives in the field until it fails. Shapes are product types: boxes, cars, racks, pylons.'},
+ {t:'.chain', n:'Step 8', h:'The causal chain',
+  p:'Read it left to right: units starting, <b>how many are born bad</b>, how many test catches, how many escape per second, and how many have already caught fire in the field. Every decision you make moves one of these numbers.'},
+ {t:null, n:'Step 9', h:'Two kinds of planning',
+  p:'<b>Quarterly</b> — four times an era, two or three decisions each, tagged THIS ERA / NEXT ERA / TWO ERAS OUT.<br><br><b>Generational</b> — between eras, a limited number of picks. This is the real decision, because <b>the capability that wins an era can only be built during the era before it</b>. Sooner or later you have to pick an era to lose.'},
+ {t:'#bPause', n:'Ready', h:'Nothing moves until you press Run',
+  p:'The clock is stopped right now, and it stops again at the start of every era so you can retune. Press <b>Run</b> when you are ready. The <b>?</b> button replays this tutorial any time.'}];
+
+let tutI=0;
+function tutStart(){tutI=0;S.run=false;setPauseBtn();$('tutWrap').classList.add('on');tutShow()}
+function tutSkip(){
+  $('tutWrap').classList.remove('on');
+  try{localStorage.setItem('st_tut','1')}catch(e){}
+  if(S.pendingFounding){S.pendingFounding=false;showGen(null,0,true)}
+}
+function tutNext(){if(tutI>=TUT.length-1)return tutSkip();tutI++;tutShow()}
+function tutBack(){if(tutI>0){tutI--;tutShow()}}
+function tutShow(){
+  const st=TUT[tutI], hole=$('tutHole'), box=$('tutBox');
+  setText('tutN',st.n); setText('tutH',st.h); setHTML('tutP',st.p);
+  setText('tutDots',(tutI+1)+'/'+TUT.length);
+  $('tutRow').querySelector('[data-act="tutNext"]').textContent=
+    tutI===TUT.length-1?'Done':'Next';
+  const el=st.t?document.querySelector(st.t):null;
+  if(!el){
+    hole.style.opacity='0'; hole.style.width='0px'; hole.style.height='0px';
+    hole.style.top='50%'; hole.style.left='50%';
+    box.style.top=Math.max(12,(innerHeight/2-150))+'px';
+    return;
+  }
+  hole.style.opacity='1';
+  // instant, not smooth: a smooth scroll is still animating when we measure
+  el.scrollIntoView({block:'center',behavior:'auto'});
+  requestAnimationFrame(()=>{
+    const r=el.getBoundingClientRect(), pad=6;
+    hole.style.top=(r.top-pad)+'px'; hole.style.left=(r.left-pad)+'px';
+    hole.style.width=(r.width+pad*2)+'px'; hole.style.height=(r.height+pad*2)+'px';
+    const bh=box.offsetHeight||190;
+    const below=r.bottom+12, above=r.top-bh-12;
+    box.style.top=(below+bh<innerHeight-10?below:(above>10?above:Math.max(10,innerHeight-bh-10)))+'px';
+  });
+}
+
 /* ================= CONTROLS ================= */
 function setPauseBtn(){const b=$('bPause');
   b.textContent=S.run?'❚❚ Pause':'▶ Run'; b.classList.toggle('go',!S.run)}
@@ -1197,7 +1299,8 @@ $('b1').onclick=()=>spd(1,'b1'); $('b3').onclick=()=>spd(3,'b3');
 $('bReset').onclick=hardReset;
 
 // one delegated listener: inline handlers can be blocked by an extension or CSP
-const ACTS={startPlay,commitGen,togglePick,pickScen,playCard,doAct,redeal,hardReset};
+const ACTS={startPlay,commitGen,togglePick,pickScen,playCard,doAct,redeal,hardReset,
+            tutStart,tutNext,tutBack,tutSkip};
 document.addEventListener('click',e=>{
   const el=e.target&&e.target.closest?e.target.closest('[data-act]'):null;
   if(!el)return;
