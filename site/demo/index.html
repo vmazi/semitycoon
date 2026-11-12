@@ -58,6 +58,9 @@ a{color:var(--cy)}
 .hud b{font-family:var(--mono);font-size:15px;font-weight:600}
 .hud em{display:block;font-style:normal;font-family:var(--mono);font-size:8px;
   color:var(--dim);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrow{display:flex;align-items:center;gap:7px}
+.mrow i{flex:0 0 26px;width:26px;height:26px;border-radius:50%;display:block;
+  box-shadow:0 0 0 1px #232b34 inset}
 .bar{height:4px;background:#0b1014;border-radius:3px;margin-top:4px;overflow:hidden}
 .bar i{display:block;height:100%;border-radius:3px;transition:width .3s}
 
@@ -207,7 +210,7 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 
 <div class="top">
   <a href="../design/">← design</a><a href="../mockups/">mockups</a>
-  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b11</span></h1>
+  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b13</span></h1>
 </div>
 
 <div class="wrap">
@@ -229,7 +232,8 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 
   <div class="hud">
     <div><span>Capital</span><b id="hCash" style="color:var(--gr)">$0k</b></div>
-    <div><span>This market</span><b id="hShare" style="color:var(--cy)">0%</b>
+    <div><span>This market</span>
+      <div class="mrow"><i id="pie"></i><b id="hShare" style="color:var(--cy)">0%</b></div>
       <div class="bar"><i id="bShare" style="background:var(--cy);width:0%"></i></div></div>
     <div><span>Reputation</span><b id="hRep" style="color:var(--gr)">100</b>
       <div class="bar"><i id="bRep" style="background:var(--gr);width:100%"></i></div></div>
@@ -492,6 +496,30 @@ const GEN=[
 /* ================= SCENARIOS ================= */
 // fx may carry a `risk`: a deferred consequence, resolved a few quarters later.
 const SCEN=[
+ {t:'Fund a long-range research group', hz:2,
+  d:'Nothing it produces will ship for a decade. That is the entire point, and the entire problem.',
+  o:[{l:'Fund it properly', hz:2, s:'<span class="cost">−$900k</span> · <span class="gain">+1.2 capability two eras out</span>',
+      fx:s=>{s.cash-=900; bump(s,2,1.2)}},
+     {l:'Fund a token version', hz:1, s:'<span class="cost">−$300k</span> · <span class="gain">+0.4 next era</span>',
+      fx:s=>{s.cash-=300; bump(s,1,0.4)}},
+     {l:'Put the money into this quarter', hz:0, s:'<span class="gain">+0.12 output now</span>',
+      fx:s=>{s.rte+=0.12}}]},
+
+ {t:'A university wants to co-locate a lab', hz:2,
+  d:'Twenty years of graduates, if the cluster takes. Nothing at all if it does not.',
+  o:[{l:'Build next to the campus', hz:2, s:'<span class="cost">−$700k</span> · <span class="gain">+0.9 two eras out, +1 pick</span>',
+      fx:s=>{s.cash-=700; bump(s,2,0.9); s.genBonus+=1}},
+     {l:'Hire their graduates instead', hz:1, s:'<span class="gain">+0.5 next era</span>',
+      fx:s=>{bump(s,1,0.5)}}]},
+
+ {t:'A standards body is forming', hz:1,
+  d:'Whoever writes the standard builds to it first. It will not matter for years.',
+  o:[{l:'Chair the committee', hz:1, s:'<span class="cost">−$400k, +10 burnout</span> · <span class="gain">+0.9 next era</span>',
+      fx:s=>{s.cash-=400; s.burn+=0.10; bump(s,1,0.9)}},
+     {l:'Send an observer', hz:2, s:'<span class="gain">+0.3 two eras out</span>', fx:s=>{bump(s,2,0.3)}},
+     {l:'Ignore it, ship product', hz:0, s:'<span class="gain">+0.15 output this era</span>',
+      fx:s=>{s.rte+=0.15}}]},
+
  {t:'A key supplier raises prices 30%', d:'Your photoresist vendor has you over a barrel and knows it.',
   o:[{l:'Absorb it', s:'<span class="cost">−$600k</span>', fx:s=>{s.cash-=600}},
      {l:'Switch to a cheaper vendor', s:'<span class="gain">−$0</span> · <span class="cost">−0.12 maintenance</span>', fx:s=>{s.mnt-=0.12}},
@@ -569,7 +597,7 @@ function reset(){
      genBonus:0,genBudget:3,capTarget:0,founding:true,
      burn:0,cont:0.10,reorgDef:0,unluckyUntil:0,
      burnMod:1,burnHeal:0,poachProof:false,hand:[],deck:[],execPlays:2,adhocCount:0,unlock:{},usedThisEra:{},
-     pending:[],scenPool:[],
+     pending:[],scenPool:[],qQueue:[],qTotal:0,
      motes:[],flights:[],dots:[],blooms:[],log:[],
      spawnT:0,testBusy:0,testQ:[],rivalT:0,
      shipped:0,caught:0,escaped:0,fires:0,
@@ -594,6 +622,8 @@ function drawLegend(){
     +'<span><i style="background:#5a2d26"></i>field failure</span>';
 }
 const fitness=a=>0.35+0.30*a.cap[S.era];
+// horizon: 0 = this era, 1 = next, 2 = the era after next
+function bump(st,hz,amt,who){const t=st.era+hz; if(t<NERA)(who||st.A[0]).cap[t]+=amt}
 // capability reads as five stars, filled to the nearest quarter star.
 // drawn as inline SVG rather than the glyph, which is not in every font.
 // Stars are CSS-only on purpose. Inline SVG in the DOM breaks uBlock's content
@@ -716,7 +746,7 @@ function step(dt){
   if(S.eraT>=(S.qInEra||0)*qLen+qLen && S.qInEra<QPE-0 && S.eraT<E.dur){
     S.qInEra=(S.qInEra||0)+1; S.qDone++;
     resolvePending();
-    openScenario();
+    openQuarter();
     return;
   }
   if(S.cash<-6000)return finish('Bankrupt','You ran out of capital before the eras ran out.');
@@ -754,15 +784,30 @@ function ignite(d){
 }
 
 /* ================= SCENARIOS ================= */
+function openQuarter(){
+  // a planning cycle is several decisions, not one
+  const n=2+(Math.random()<0.5?1:0);
+  S.qQueue=[];
+  for(let i=0;i<n;i++){
+    if(!S.scenPool.length)S.scenPool=SCEN.map((_,j)=>j).sort(()=>Math.random()-0.5);
+    S.qQueue.push(S.scenPool.pop());
+  }
+  S.qTotal=n; openScenario();
+}
 function openScenario(){
-  if(!S.scenPool.length)S.scenPool=SCEN.map((_,i)=>i).sort(()=>Math.random()-0.5);
-  const sc=SCEN[S.scenPool.pop()];
+  const sc=SCEN[S.qQueue.shift()];
   S.phase='scen'; S.run=false;
-  $('ocard').innerHTML=`<div class="sub">Quarterly planning · ${ERAS[S.era].n} era`+
+  const done=S.qTotal-S.qQueue.length;
+  const HZ=['THIS ERA','NEXT ERA','TWO ERAS OUT'];
+  const HZC=['var(--gr)','var(--am)','var(--vi)'];
+  $('ocard').innerHTML=`<div class="sub">Quarterly planning · decision ${done} of ${S.qTotal}`+
     (sc.w?' · <span style="color:var(--rd)">industry-wide</span>':'')+`</div>
     <h2>${sc.t}</h2><p>${sc.d}</p>
-    <div class="opts">${sc.o.map((o,i)=>
-      `<button data-act="pickScen" data-arg="${i}"><b>${o.l}</b><small>${o.s}</small></button>`).join('')}</div>`;
+    <div class="opts">${sc.o.map((o,i)=>{
+      const h=o.hz||0;
+      return `<button data-act="pickScen" data-arg="${i}">
+        <b>${o.l} <span style="color:${HZC[h]};font-size:9px;letter-spacing:.1em">${HZ[h]}</span></b>
+        <small>${o.s}</small></button>`}).join('')}</div>`;
   $('over').style.display='block'; $('over').scrollTop=0;
   window.__scen=sc;
 }
@@ -770,6 +815,7 @@ function pickScen(i){
   const o=window.__scen.o[i];
   o.fx(S); clampLevers();
   log('“'+window.__scen.t+'” → '+o.l,'act');
+  if(S.qQueue&&S.qQueue.length){openScenario();return}
   $('over').style.display='none';
   S.phase='play'; S.run=true; setPauseBtn(); drawActions();
 }
@@ -1103,6 +1149,13 @@ function hud(){
   if(ce.__c!==cc){ce.__c=cc;ce.style.color=cc}
   const me=shares().find(o=>o.i===0);
   setText('hShare',Math.round(me.pc*100)+'%');
+  const sh=shares(); let acc=0, segs=[];
+  for(const o of sh){ if(o.n===0)continue;
+    const a=acc, b=acc+o.pc*100; acc=b;
+    segs.push(`${OWNC(o.i)} ${a.toFixed(1)}% ${b.toFixed(1)}%`); }
+  if(acc<99.9)segs.push(`#141b21 ${acc.toFixed(1)}% 100%`);
+  const pie='conic-gradient('+segs.join(',')+')';
+  const pe=$('pie'); if(pe&&pe.__p!==pie){pe.__p=pie; pe.style.background=pie}
   setW('bShare',(me.pc*100).toFixed(1)+'%');
   setText('hRep',Math.round(S.rep*100));
   setW('bRep',(S.rep*100).toFixed(1)+'%',S.rep<.4?'var(--rd)':S.rep<.7?'var(--am)':'var(--gr)');
