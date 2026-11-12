@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SEMI TYCOON — the line</title>
+<title>SEMI TYCOON — five eras</title>
 <style>
 :root{
   --bg:#0a0c0f; --panel:#12161b; --panel2:#171c23; --line:#232b34;
@@ -15,21 +15,37 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);
   font-size:15px;line-height:1.5;overflow-x:hidden}
-h1{font-family:var(--mono);font-size:17px;margin:0;letter-spacing:-.01em}
+h1{font-family:var(--mono);font-size:16px;margin:0;letter-spacing:-.01em}
 a{color:var(--cy)}
-.wrap{max-width:560px;margin:0 auto;padding:0 11px 30px}
-
+.wrap{max-width:560px;margin:0 auto;padding:0 11px 34px}
 .top{display:flex;align-items:center;gap:9px;padding:10px 11px;border-bottom:1px solid var(--line);
   max-width:560px;margin:0 auto}
 .top a{font-family:var(--mono);font-size:10.5px;color:var(--mut);text-decoration:none;
   border:1px solid var(--line);padding:4px 8px;border-radius:5px}
 .top .sp{flex:1}
 
-/* HUD */
-.hud{display:flex;flex-wrap:wrap;gap:6px;margin:11px 0 8px}
-.hud div{flex:1;min-width:72px;background:var(--panel);border:1px solid var(--line);
+.erabar{margin:11px 0 8px;background:var(--panel);border:1px solid var(--line);
+  border-radius:9px;padding:9px 11px}
+.erah{display:flex;align-items:baseline;gap:8px;font-family:var(--mono);font-size:11px;flex-wrap:wrap}
+.erah b{font-size:14px;color:var(--cy);letter-spacing:.04em}
+.erah .yr{color:var(--dim);font-size:10px}
+.erah .sp{flex:1}
+.erah .wins{color:var(--vi);font-size:10px}
+.etrack{height:5px;background:#0b1014;border-radius:3px;margin-top:7px;overflow:hidden}
+.etrack i{display:block;height:100%;background:linear-gradient(90deg,#2a6475,#49c5dd);border-radius:3px}
+
+.score{display:flex;gap:5px;margin-bottom:8px}
+.score div{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:7px;
+  padding:5px 6px;text-align:center;min-width:0}
+.score span{display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.04em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.score b{font-family:var(--mono);font-size:16px;display:block;line-height:1.25}
+.score em{font-style:normal;font-family:var(--mono);font-size:8.5px;color:var(--dim)}
+
+.hud{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.hud div{flex:1;min-width:76px;background:var(--panel);border:1px solid var(--line);
   border-radius:7px;padding:6px 8px}
-.hud span{display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.13em;
+.hud span{display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.11em;
   color:var(--dim);text-transform:uppercase}
 .hud b{font-family:var(--mono);font-size:15px;font-weight:600}
 .bar{height:4px;background:#0b1014;border-radius:3px;margin-top:4px;overflow:hidden}
@@ -37,8 +53,11 @@ a{color:var(--cy)}
 
 canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
   border-radius:10px;background:#070a0d;touch-action:pan-y}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;font-family:var(--mono);
+  font-size:9.5px;color:var(--dim)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;
+  vertical-align:-1px}
 
-/* levers */
 .levers{margin-top:10px;background:var(--panel);border:1px solid var(--line);
   border-radius:10px;padding:11px 13px}
 .lev{margin-bottom:11px}
@@ -49,63 +68,79 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 .lh small{display:block;color:var(--dim);font-size:9.5px;font-family:var(--mono);margin-top:1px}
 input[type=range]{width:100%;height:28px;margin:1px 0 0}
 #cov{accent-color:#49c5dd} #mnt{accent-color:#62c98c} #rte{accent-color:#f0a73d}
+#alloc{accent-color:#a98ae0}
 
 .ctl{display:flex;gap:6px;margin-top:10px}
 .ctl button{flex:1;font-family:var(--mono);font-size:11px;padding:9px 4px;border-radius:7px;
   border:1px solid var(--line);background:var(--panel2);color:var(--tx);cursor:pointer}
 .ctl button.on{background:var(--cy);border-color:var(--cy);color:#06181d;font-weight:700}
 
-/* log */
 .log{margin-top:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;
-  padding:9px 11px;height:132px;overflow-y:auto;font-family:var(--mono);font-size:10.5px;line-height:1.65}
+  padding:9px 11px;height:124px;overflow-y:auto;font-family:var(--mono);font-size:10.5px;line-height:1.6}
 .log div{padding:2px 0;border-bottom:1px solid #161d24;color:var(--mut)}
 .log div:last-child{border:0}
 .log .d{color:var(--dim);margin-right:6px}
-.log .fire{color:#e8a9a5}
-.log .good{color:#8fd3ab}
-.log .warn{color:#e5bd7e}
+.log .fire{color:#e8a9a5} .log .good{color:#8fd3ab} .log .era{color:#b8a4e8}
 
-.over{position:fixed;inset:0;background:rgba(6,8,11,.93);display:flex;align-items:center;
-  justify-content:center;z-index:30;padding:20px}
-.over .card{max-width:380px;background:var(--panel);border:1px solid var(--line);
-  border-radius:12px;padding:20px;text-align:center}
-.over h2{font-family:var(--mono);font-size:20px;margin:0 0 10px}
-.over p{color:#9fb0bf;font-size:14px;margin:0 0 8px}
-.over .st{font-family:var(--mono);font-size:11.5px;color:var(--mut);margin:12px 0;line-height:1.9}
-.over button{font-family:var(--mono);font-size:12px;padding:11px 22px;border-radius:7px;
-  border:0;background:var(--cy);color:#06181d;font-weight:700;cursor:pointer}
+.over{position:fixed;inset:0;background:rgba(6,8,11,.95);z-index:40;overflow-y:auto;padding:14px}
+.ocard{max-width:420px;margin:10px auto;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:18px}
+.ocard h2{font-family:var(--mono);font-size:17px;margin:0 0 3px;line-height:1.3}
+.ocard .sub{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--am);
+  text-transform:uppercase;margin-bottom:10px}
+.ocard p{color:#9fb0bf;font-size:13.5px;margin:10px 0}
+.stand div{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #1a222a;
+  font-family:var(--mono);font-size:11.5px}
+.stand div:last-child{border:0}
+.stand .pos{flex:0 0 16px;color:var(--dim)}
+.stand .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stand .pc{flex:0 0 70px;text-align:right;color:var(--tx)}
+.stand .pt{flex:0 0 30px;text-align:right}
+.nxt{margin-top:15px;padding-top:13px;border-top:1px solid var(--line)}
+.nxt h3{font-family:var(--mono);font-size:13px;margin:0 0 4px;color:var(--cy)}
+.nxt .ns{font-size:12.5px;color:var(--mut);margin-bottom:10px;line-height:1.55}
+.caps{display:flex;gap:4px;margin:8px 0 3px}
+.caps i{flex:1;height:7px;border-radius:2px;background:#1a222a}
+.caps i.on{background:var(--vi)}
+.allocbox{margin-top:13px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:9px;padding:11px 12px}
+.allocbox .al{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);
+  font-size:9.5px;color:var(--dim)}
+.allocbox .hintrow{font-family:var(--mono);font-size:10.5px;color:#9fb0bf;margin-top:7px;line-height:1.6}
+.obtn{width:100%;margin-top:14px;font-family:var(--mono);font-size:13px;padding:13px;
+  border-radius:8px;border:0;background:var(--cy);color:#06181d;font-weight:700;cursor:pointer}
 .hint{margin-top:11px;font-size:13px;color:var(--mut);line-height:1.6}
 .hint b{color:var(--am)}
-.legend{display:flex;gap:11px;flex-wrap:wrap;margin-top:7px;font-family:var(--mono);
-  font-size:9.5px;color:var(--dim)}
-.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;
-  vertical-align:-1px}
 </style>
 </head>
 <body>
 
 <div class="top">
   <a href="../design/">← design</a><a href="../mockups/">mockups</a>
-  <div class="sp"></div><h1>THE LINE</h1>
+  <div class="sp"></div><h1>FIVE ERAS</h1>
 </div>
 
 <div class="wrap">
+  <div class="erabar">
+    <div class="erah"><b id="eName">MAINFRAME</b><span class="yr" id="eYears">1965–1980</span>
+      <span class="sp"></span><span class="wins" id="eWins">wins on RELIABILITY</span></div>
+    <div class="etrack"><i id="eTrack" style="width:0%"></i></div>
+  </div>
+
+  <div class="score" id="score"></div>
+
   <div class="hud">
-    <div><span>Year</span><b id="hYear" style="color:var(--tx)">1</b></div>
     <div><span>Cash</span><b id="hCash" style="color:var(--gr)">$0k</b></div>
-    <div><span>Your world</span><b id="hShare" style="color:var(--cy)">0%</b>
+    <div><span>This market</span><b id="hShare" style="color:var(--cy)">0%</b>
       <div class="bar"><i id="bShare" style="background:var(--cy);width:0%"></i></div></div>
-    <div><span>Reputation</span><b id="hRep" style="color:var(--am)">100</b>
-      <div class="bar"><i id="bRep" style="background:var(--am);width:100%"></i></div></div>
+    <div><span>Reputation</span><b id="hRep" style="color:var(--gr)">100</b>
+      <div class="bar"><i id="bRep" style="background:var(--gr);width:100%"></i></div></div>
+    <div><span>Era fitness</span><b id="hFit" style="color:var(--vi)">2.0</b>
+      <div class="bar"><i id="bFit" style="background:var(--vi);width:40%"></i></div></div>
   </div>
 
   <canvas id="cv" width="400" height="400"></canvas>
-  <div class="legend">
-    <span><i style="background:#49c5dd"></i>your silicon</span>
-    <span><i style="background:#e2706b"></i>rival</span>
-    <span><i style="background:#f0a73d"></i>defective unit</span>
-    <span><i style="background:#5a2d26"></i>field failure</span>
-  </div>
+  <div class="legend" id="legend"></div>
 
   <div class="levers">
     <div class="lev">
@@ -134,25 +169,36 @@ input[type=range]{width:100%;height:28px;margin:1px 0 0}
 
   <div class="log" id="log"></div>
 
-  <p class="hint"><b>The whole game in one sentence:</b> cutting test coverage feels great for
-  thirty seconds, and then your world starts catching fire — and the log tells you exactly
-  which decision did it.</p>
+  <p class="hint"><b>How you win:</b> five eras, most eras won takes it. But the capability
+  that wins an era can only be built during the era <i>before</i> it — so sooner or later
+  you have to pick an era to lose.</p>
 </div>
 
-<div class="over" id="over" style="display:none"><div class="card">
-  <h2 id="oT"></h2><p id="oP"></p><div class="st" id="oS"></div>
-  <button onclick="reset();document.getElementById('over').style.display='none'">Run it again</button>
-</div></div>
+<div class="over" id="over" style="display:none"><div class="ocard" id="ocard"></div></div>
 
 <script>
 'use strict';
-const cv=document.getElementById('cv'), cx=cv.getContext('2d');
-const W=400,H=400;
+const $=id=>document.getElementById(id);
+const cv=$('cv'), cx=cv.getContext('2d'); const W=400,H=400;
 function fit(){const d=window.devicePixelRatio||1,w=cv.clientWidth;
-  cv.width=w*d;cv.height=w*d;cx.setTransform(d*w/W,0,0,d*w/W,0,0);}
+  cv.width=w*d;cv.height=w*d;cx.setTransform(d*w/W,0,0,d*w/W,0,0)}
 addEventListener('resize',fit);
 
-/* ---------- world grid ---------- */
+/* ================= ERAS ================= */
+const ERAS=[
+ {n:'MAINFRAME',  y:'1965–1980', cap:'RELIABILITY',      dur:46,
+  d:'A few enormous machines that must never fail. Volume is irrelevant — a field failure is a scandal.'},
+ {n:'PC',         y:'1980–1995', cap:'COST / VOLUME',    dur:46,
+  d:'Volume explodes and price collapses. Whoever makes it cheapest, in the most places, wins.'},
+ {n:'NETWORKING', y:'1995–2005', cap:'INTEGRATION',      dur:46,
+  d:'Everything has to talk to everything. The win is putting more functions on one die.'},
+ {n:'MOBILE',     y:'2005–2015', cap:'POWER EFFICIENCY', dur:46,
+  d:'It runs on a battery in a pocket. Performance per watt is the only number anyone reads.'},
+ {n:'CLOUD / AI', y:'2015–2030', cap:'PACKAGING / SCALE',dur:46,
+  d:'Dies too big to yield, stacked and stitched together. Packaging is the whole game.'}];
+const NERA=ERAS.length;
+
+/* ================= WORLD ================= */
 const COLS=20,ROWS=15,DX=16.4,DY=16.4,GX=16,GY=128;
 const SEG=[['CONSUMER',0,4],['AUTOMOTIVE',5,8],['DATACENTER',9,11],['GRID / INDUSTRIAL',12,14]];
 const SEGINFO={
@@ -162,151 +208,301 @@ const SEGINFO={
  'GRID / INDUSTRIAL':{rep:.036,cost:560,txt:'inverter fire — site burned'}};
 function segOf(r){for(const s of SEG)if(r>=s[1]&&r<=s[2])return s[0];return 'CONSUMER'}
 
-/* ---------- nodes ---------- */
-const NODE=[{n:'FAB',x:52,y:62},{n:'TEST',x:148,y:62},{n:'PACK',x:244,y:62},{n:'SHIP',x:340,y:62}];
-const NW=58,NH=30;
+/* ================= ACTORS =================
+   doctrine = fraction of R&D a rival sends to the NEXT era. One number each. */
+const ROSTER=[
+ {n:'YOU',      c:'#49c5dd', doc:null},
+ {n:'HOSHINO',  c:'#e2706b', doc:0.10, bio:'always builds for now'},
+ {n:'KAITO',    c:'#a98ae0', doc:0.80, bio:'always builds for next'},
+ {n:'MERIDIAN', c:'#8d98a4', doc:0.45, bio:'splits evenly, every time'}];
+const BURN=9;
+// balance constants, kept together so they can be swept
+const TUNE={rb:0.16,rc:0.07,fb:0.35,fc:0.12,cv:0.55,rd:3.2,nx:1.0,cg:3000};
 
-/* ---------- state ---------- */
+const NODE=[{n:'FAB',x:52,y:54},{n:'TEST',x:148,y:54},{n:'PACK',x:244,y:54},{n:'SHIP',x:340,y:54}];
+const NW=58,NH=28;
+
 let S;
 function reset(){
-  S={t:0,day:0,run:true,speed:1,cash:0,rep:1,
+  S={t:0,run:false,speed:1,cash:1200,rep:1,
      cov:+cov.value/100,mnt:+mnt.value/100,rte:+rte.value/100,
+     era:0,eraT:0,alloc:0.40,phase:'play',
      motes:[],flights:[],dots:[],blooms:[],log:[],
-     spawnT:0,testBusy:0,testQ:[],rivalT:0,shipped:0,caught:0,escaped:0,fires:0,peak:0};
+     spawnT:0,testBusy:0,testQ:[],rivalT:0,
+     shipped:0,caught:0,escaped:0,fires:0,
+     A:ROSTER.map(r=>({...r,cap:[2,0,0,0,0],pts:0,era:[]}))};
   for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)
-    S.dots.push({c,r,x:GX+c*DX,y:GY+r*DY,own:0,bad:false,ign:0,burn:0,
-                 seg:segOf(r),cov:0,day:0,fl:Math.random()*6.3});
-  // rival starts with a foothold
-  for(let i=0;i<26;i++){const d=S.dots[(Math.random()*S.dots.length)|0];if(d.own===0)d.own=2}
-  log('Line started. Three levers. Everything else is noise.','good');
+    S.dots.push({c,r,x:GX+c*DX,y:GY+r*DY,own:-1,bad:false,ign:0,burn:0,
+                 seg:segOf(r),cov:0,fl:Math.random()*6.3});
+  for(let i=0;i<22;i++){const d=S.dots[(Math.random()*S.dots.length)|0];
+    if(d.own<0)d.own=1+((Math.random()*3)|0)}
+  S.log=[]; log('The Mainframe era begins. Everyone starts at reliability 2.0','era');
+  drawLegend();
 }
-function log(m,cls){S.log.unshift({d:'Y'+(1+Math.floor(S.day/360))+' D'+(S.day%360|0),m,cls:cls||''});
-  if(S.log.length>40)S.log.pop(); drawLog()}
-function drawLog(){document.getElementById('log').innerHTML=
-  S.log.map(l=>`<div class="${l.cls}"><span class="d">${l.d}</span>${l.m}</div>`).join('')}
+function log(m,cls){
+  S.log.unshift({d:ERAS[S.era].n.slice(0,4),m,cls:cls||''});
+  if(S.log.length>40)S.log.pop();
+  $('log').innerHTML=S.log.map(l=>
+    `<div class="${l.cls}"><span class="d">${l.d}</span>${l.m}</div>`).join('');
+}
+function drawLegend(){
+  $('legend').innerHTML=S.A.map(a=>`<span><i style="background:${a.c}"></i>${a.n}</span>`).join('')
+    +'<span><i style="background:#f0a73d"></i>defect</span>'
+    +'<span><i style="background:#5a2d26"></i>field failure</span>';
+}
+const fitness=a=>0.35+0.30*a.cap[S.era];
 
-/* ---------- sim ---------- */
+/* ================= SIM ================= */
 function step(dt){
-  S.t+=dt; S.day+=dt*6;
-  // maintenance is a standing cost, not a per-unit one
+  S.t+=dt; S.eraT+=dt;
+  const E=ERAS[S.era];
+
+  // R&D accrues over the era and splits between now and next
+  const rd=dt*(TUNE.rd/E.dur);
+  for(let i=0;i<S.A.length;i++){
+    const a=S.A[i];
+    const al=a.doc===null?S.alloc:a.doc;
+    // the player's R&D is funded by actual revenue; rivals are abstracted
+    const fund=i===0 ? 0.45+0.55*Math.max(0,Math.min(1,S.cash/TUNE.cg)) : 1;
+    a.cap[S.era]=Math.min(5,a.cap[S.era]+rd*(1-al)*fund);
+    if(S.era+1<NERA)a.cap[S.era+1]=Math.min(5,a.cap[S.era+1]+rd*al*TUNE.nx*fund);
+  }
+
   S.cash-=dt*26*S.mnt;
-  // spawn
   S.spawnT-=dt;
   if(S.spawnT<=0){
     S.spawnT=0.52/S.rte;
     const pDef=Math.min(.75,0.015+0.38*(1-S.mnt)+0.32*Math.max(0,S.rte-1));
-    S.motes.push({seg:0,p:0,bad:Math.random()<pDef,cov:S.cov,born:S.day});
-    S.cash-=3;                          // wafer
+    S.motes.push({seg:0,p:0,bad:Math.random()<pDef,cov:S.cov});
+    S.cash-=3;
   }
-  // motes along the line
   const SPD=[1/1.15,1/0.85,1/0.85];
   for(let i=S.motes.length-1;i>=0;i--){
-    const m=S.motes[i];
-    if(m.hold){continue}
+    const m=S.motes[i]; if(m.hold)continue;
     m.p+=dt*SPD[m.seg];
     if(m.p>=1){
       m.p=0;
-      if(m.seg===0){ m.hold=true; S.testQ.push(m) }      // enter test queue
-      else if(m.seg===2){                                 // leaves SHIP
-        S.motes.splice(i,1); shipOut(m);
-      } else m.seg++;
+      if(m.seg===0){m.hold=true;S.testQ.push(m)}
+      else if(m.seg===2){S.motes.splice(i,1);shipOut(m)}
+      else m.seg++;
     }
   }
-  // test station: one unit at a time, slower at high coverage
   S.testBusy-=dt;
   if(S.testBusy<=0&&S.testQ.length){
     const m=S.testQ.shift();
-    // service rate keeps up with the line until ~80% coverage, then visibly does not
     S.testBusy=0.18+0.42*S.cov;
     S.cash-=0.5+7*S.cov;
     if(m.bad&&Math.random()<S.cov*0.95){
       S.caught++; S.cash-=12;
       S.blooms.push({x:NODE[1].x,y:NODE[1].y,a:1,r:4,kind:'catch'});
       const k=S.motes.indexOf(m); if(k>=0)S.motes.splice(k,1);
-    } else { m.hold=false; m.seg=1; m.p=0; if(m.bad)S.escaped++ }
+    } else {m.hold=false;m.seg=1;m.p=0; if(m.bad)S.escaped++}
   }
-  // flights into the world
   for(let i=S.flights.length-1;i>=0;i--){
     const f=S.flights[i]; f.p+=dt*0.95;
-    if(f.p>=1){ land(f); S.flights.splice(i,1) }
+    if(f.p>=1){land(f);S.flights.splice(i,1)}
   }
-  // rival expansion
+  // rivals take ground in proportion to their fitness for THIS era
   S.rivalT-=dt;
   if(S.rivalT<=0){
-    S.rivalT=1.5;
-    const free=S.dots.filter(d=>d.own===0);
-    if(free.length)free[(Math.random()*free.length)|0].own=2;
+    S.rivalT=0.34;
+    for(let i=1;i<S.A.length;i++){
+      if(Math.random()>TUNE.rb+TUNE.rc*S.A[i].cap[S.era])continue;
+      let pool=S.dots.filter(d=>d.own<0);
+      if(!pool.length||Math.random()>0.76)
+        pool=S.dots.filter(d=>d.own>=0&&d.own!==i&&d.own!==BURN);
+      if(pool.length)pool[(Math.random()*pool.length)|0].own=i;
+    }
   }
-  // ignitions
   for(const d of S.dots){
-    if(d.own===1&&d.bad&&d.ign>0&&S.t>=d.ign) ignite(d);
+    if(d.own===0&&d.bad&&d.ign>0&&S.t>=d.ign)ignite(d);
     if(d.burn>0)d.burn=Math.max(0,d.burn-dt*0.22);
   }
-  // blooms
   for(let i=S.blooms.length-1;i>=0;i--){
     const b=S.blooms[i]; b.a-=dt*(b.kind==='catch'?3.2:1.1); b.r+=dt*(b.kind==='catch'?26:34);
     if(b.a<=0)S.blooms.splice(i,1);
   }
-  // reputation recovers slowly
   S.rep=Math.min(1,S.rep+dt*0.006);
-  const mine=S.dots.filter(d=>d.own===1).length;
-  S.peak=Math.max(S.peak,mine/S.dots.length);
-  // end conditions
-  if(S.cash<-6000)over('Bankrupt','You ran out of money before the line ever stabilised.');
-  else if(S.rep<0.2)over('Designed out',
-    'Your reputation collapsed. Customers qualified someone else, and they will not come back.');
+
+  if(S.cash<-6000)return finish('Bankrupt','You ran out of money before the eras ran out.');
+  if(S.rep<0.2)return finish('Designed out','Your reputation collapsed. Nobody will qualify you again.');
+  if(S.eraT>=E.dur)endEra();
 }
 function shipOut(m){
-  // pick a target: prefer unclaimed, else convert a rival dot (reputation gated)
-  let pool=S.dots.filter(d=>d.own===0);
-  if(!pool.length||Math.random()>0.72){
-    const riv=S.dots.filter(d=>d.own===2);
-    if(riv.length&&Math.random()<S.rep)pool=riv;
+  const f=fitness(S.A[0]);
+  S.cash+=30+30*f; S.shipped++;
+  if(Math.random()>TUNE.fb+TUNE.fc*S.A[0].cap[S.era])return;   // poor fit for this era: no foothold
+  let pool=S.dots.filter(d=>d.own<0);
+  if(!pool.length||Math.random()>0.70){
+    const riv=S.dots.filter(d=>d.own>0&&d.own!==BURN);
+    if(riv.length&&Math.random()<S.rep*f*TUNE.cv)pool=riv;
   }
-  if(!pool.length)pool=S.dots.filter(d=>d.own!==1);
-  if(!pool.length){S.cash+=60;S.shipped++;return}
+  if(!pool.length)pool=S.dots.filter(d=>d.own!==0&&d.own!==BURN);
+  if(!pool.length)return;
   const tgt=pool[(Math.random()*pool.length)|0];
   S.flights.push({x0:NODE[3].x,y0:NODE[3].y,x1:tgt.x,y1:tgt.y,p:0,bad:m.bad,cov:m.cov,tgt});
 }
 function land(f){
   const d=f.tgt;
-  d.own=1; d.bad=f.bad; d.cov=f.cov; d.day=S.day;
+  d.own=0; d.bad=f.bad; d.cov=f.cov;
   d.ign=(f.bad&&Math.random()<0.55)? S.t+16+Math.random()*30 : 0;
-  S.cash+=60; S.shipped++;
 }
 function ignite(d){
   const info=SEGINFO[d.seg];
-  d.bad=false; d.ign=0; d.burn=1; d.own=3;
+  d.bad=false; d.ign=0; d.burn=1; d.own=BURN;
   S.fires++; S.cash-=info.cost; S.rep=Math.max(0,S.rep-info.rep);
   S.blooms.push({x:d.x,y:d.y,a:1,r:3,kind:'fire'});
-  // the field failure costs you neighbours too
   let lost=0;
-  for(const o of S.dots){
-    if(o.own===1&&Math.abs(o.c-d.c)<=2&&Math.abs(o.r-d.r)<=2&&Math.random()<0.5){o.own=2;lost++}
-  }
-  log(`⚠ ${d.seg}: ${info.txt}. −$${info.cost}k, −${Math.round(info.rep*100)} rep`+
-      (lost?`, ${lost} sockets lost to rival`:'')+
-      ` <span style="color:#6d7d8c">· unit shipped day ${Math.round(d.day)}, coverage was ${Math.round(d.cov*100)}%</span>`,'fire');
-}
-function over(t,p){
-  S.run=false;
-  document.getElementById('oT').textContent=t;
-  document.getElementById('oP').textContent=p;
-  document.getElementById('oS').innerHTML=
-    `shipped ${S.shipped} · defects caught ${S.caught} · escaped ${S.escaped}<br>
-     field failures ${S.fires} · peak world share ${Math.round(S.peak*100)}%`;
-  document.getElementById('over').style.display='flex';
+  for(const o of S.dots)
+    if(o.own===0&&Math.abs(o.c-d.c)<=2&&Math.abs(o.r-d.r)<=2&&Math.random()<0.5){
+      o.own=1+((Math.random()*3)|0); lost++}
+  log(`⚠ ${d.seg}: ${info.txt}. −$${info.cost}k`+(lost?`, ${lost} sockets lost`:'')+
+      ` <span style="color:#6d7d8c">· coverage was ${Math.round(d.cov*100)}%</span>`,'fire');
 }
 
-/* ---------- draw ---------- */
+/* ================= ERA TRANSITIONS ================= */
+function shares(){
+  const n=S.dots.length, out=S.A.map((a,i)=>({i,a,n:0}));
+  for(const d of S.dots)if(d.own>=0&&d.own<4)out[d.own].n++;
+  out.forEach(o=>o.pc=o.n/n);
+  return out.sort((x,y)=>y.n-x.n);
+}
+const PTS=[3,2,1,0];
+function endEra(){
+  const st=shares();
+  st.forEach((o,k)=>{o.a.pts+=PTS[k]; o.a.era[S.era]=PTS[k]});
+  const k=st.findIndex(o=>o.i===0);
+  log(`${ERAS[S.era].n} era ends — you placed #${k+1} with `+
+      `${Math.round(st[k].pc*100)}% of the market, +${PTS[k]} points`,'era');
+  if(S.era>=NERA-1){S.phase='done';S.run=false;return showFinal()}
+  S.phase='between'; S.run=false; showIntermission(st);
+}
+function beginNextEra(){
+  S.era++; S.eraT=0; S.phase='play'; S.run=true;
+  // installed base has inertia, but the market largely reopens
+  for(const d of S.dots){
+    if(d.own===BURN){d.own=-1;d.burn=0}
+    else if(d.own>=0&&Math.random()>0.45)d.own=-1;
+    d.bad=false; d.ign=0;
+  }
+  S.motes=[];S.flights=[];S.testQ=[];S.blooms=[];
+  log(`The ${ERAS[S.era].n} era begins — won on ${ERAS[S.era].cap}. `+
+      `You arrive at ${S.A[0].cap[S.era].toFixed(1)}.`,'era');
+  $('over').style.display='none';
+  $('bPause').textContent='❚❚ Pause';
+}
+
+/* ================= OVERLAYS ================= */
+function capBar(v){let s='<div class="caps">';
+  for(let i=0;i<5;i++)s+=`<i class="${i<Math.round(v)?'on':''}"></i>`;return s+'</div>'}
+function standRows(st){
+  return '<div class="stand">'+st.map((o,k)=>`<div>
+    <span class="pos">${k+1}</span>
+    <span class="nm" style="color:${o.a.c}">${o.a.n}</span>
+    <span class="pc">${Math.round(o.pc*100)}%</span>
+    <span class="pt" style="color:${PTS[k]?'var(--gr)':'var(--dim)'}">+${PTS[k]}</span>
+  </div>`).join('')+'</div>'}
+
+function showIntro(){
+  $('ocard').innerHTML=`
+    <div class="sub">How you win</div>
+    <h2>Five eras. Win the most.</h2>
+    <p>Each era goes to whoever holds the most of that era's market when it ends.
+       1st = 3 points, 2nd = 2, 3rd = 1.</p>
+    <p><b style="color:var(--am)">The catch:</b> the capability that wins an era can only
+       be built during the era <i>before</i> it. Every era you split R&amp;D between
+       <b style="color:var(--tx)">NOW</b> and <b style="color:var(--tx)">NEXT</b>.
+       Pour it all into now and you will win this era and show up to the next one with
+       nothing.</p>
+    <div class="nxt"><h3>Your rivals never change their minds</h3>
+    ${S.A.slice(1).map(a=>`<div style="font-family:var(--mono);font-size:11px;padding:4px 0;color:var(--mut)">
+      <span style="color:${a.c}">${a.n}</span> — ${a.bio}
+      <span style="color:var(--dim)">(${Math.round(a.doc*100)}% into next)</span></div>`).join('')}
+    <div style="font-size:12.5px;color:var(--mut);margin-top:9px;line-height:1.55">
+      Watch Hoshino. It wins the early eras and then falls off a cliff.</div>
+    </div>
+    <button class="obtn" onclick="startPlay()">Begin the Mainframe era</button>`;
+  $('over').style.display='block';
+}
+function startPlay(){S.run=true;$('over').style.display='none'}
+
+function showIntermission(st){
+  const nx=ERAS[S.era+1], me=S.A[0], won=st[0].i===0;
+  const after=S.era+2<NERA?ERAS[S.era+2].n:'THE LAST ERA';
+  $('ocard').innerHTML=`
+    <div class="sub">${ERAS[S.era].n} era · final standings</div>
+    <h2>${won?'You won the era.':st[0].a.n+' won the era.'}</h2>
+    ${standRows(st)}
+    <div style="margin-top:12px;font-family:var(--mono);font-size:10.5px;color:var(--mut)">
+      RUNNING TOTAL — ${[...S.A].sort((a,b)=>b.pts-a.pts)
+        .map(a=>`<span style="color:${a.c}">${a.n} ${a.pts}</span>`).join(' · ')}</div>
+    <div class="nxt">
+      <h3>NEXT: THE ${nx.n} ERA</h3>
+      <div class="ns">${nx.d}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--mut)">
+        Won on <b style="color:var(--vi)">${nx.cap}</b> — you arrive at level
+        <b style="color:var(--tx)">${me.cap[S.era+1].toFixed(1)}</b>
+        <span style="color:var(--dim)">(best rival ${Math.max(...S.A.slice(1).map(a=>a.cap[S.era+1])).toFixed(1)})</span></div>
+      ${capBar(me.cap[S.era+1])}
+      <div class="allocbox">
+        <div class="al"><span>ALL INTO<br><b style="color:var(--tx)">${nx.n}</b></span>
+          <span style="text-align:right">ALL INTO<br><b style="color:var(--tx)">${after}</b></span></div>
+        <input type="range" id="alloc" min="0" max="100" value="${Math.round(S.alloc*100)}">
+        <div class="hintrow" id="allocHint"></div>
+      </div>
+    </div>
+    <button class="obtn" onclick="beginNextEra()">Begin the ${nx.n} era</button>`;
+  const al=$('alloc');
+  const upd=()=>{S.alloc=+al.value/100; const p=Math.round(S.alloc*100);
+    $('allocHint').innerHTML = p<=20
+      ? `<b style="color:var(--gr)">${100-p}% into ${nx.n}.</b> You will compete now, and arrive at the era after it with almost nothing. This is exactly how Hoshino dies.`
+      : p>=70
+      ? `<b style="color:var(--am)">${p}% into ${after}.</b> You are conceding ${nx.n} on purpose, to arrive at the one after it unbeatable.`
+      : `A hedge — ${100-p}% now, ${p}% later. Meridian plays this way and has never won an era.`};
+  al.oninput=upd; upd();
+  $('over').style.display='block';
+}
+function showFinal(){
+  const rank=[...S.A].sort((a,b)=>b.pts-a.pts);
+  const won=rank[0].n==='YOU';
+  $('ocard').innerHTML=`
+    <div class="sub">2030 · the eras are over</div>
+    <h2 style="color:${won?'var(--gr)':'var(--rd)'}">${won?'You won.':rank[0].n+' won.'}</h2>
+    <div class="stand" style="margin-top:12px">
+    ${rank.map((a,k)=>`<div><span class="pos">${k+1}</span>
+      <span class="nm" style="color:${a.c}">${a.n}</span>
+      <span class="pc" style="color:var(--dim);letter-spacing:2px">${
+        a.era.map(p=>p===3?'●':p===0?'·':'○').join('')}</span>
+      <span class="pt" style="color:var(--tx)">${a.pts}</span></div>`).join('')}
+    </div>
+    <div style="margin-top:10px;font-family:var(--mono);font-size:9.5px;color:var(--dim)">
+      ● won the era · ○ placed · · came last &nbsp;—&nbsp; mainframe → PC → networking → mobile → cloud</div>
+    <div style="margin-top:13px;font-family:var(--mono);font-size:11px;color:var(--mut);line-height:1.9">
+      shipped ${S.shipped} · caught ${S.caught} · escaped ${S.escaped}<br>
+      field failures ${S.fires} · cash $${Math.round(S.cash)}k</div>
+    <button class="obtn" onclick="hardReset()">Run it again</button>`;
+  $('over').style.display='block';
+}
+function finish(t,p){
+  S.run=false; S.phase='done';
+  $('ocard').innerHTML=`<div class="sub">Run over · ${ERAS[S.era].n} era</div>
+    <h2 style="color:var(--rd)">${t}</h2><p>${p}</p>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--mut);line-height:1.9">
+      eras survived ${S.era} of ${NERA} · points ${S.A[0].pts}<br>
+      shipped ${S.shipped} · escaped ${S.escaped} · field failures ${S.fires}</div>
+    <button class="obtn" onclick="hardReset()">Run it again</button>`;
+  $('over').style.display='block';
+}
+function hardReset(){reset();lev();showIntro();$('bPause').textContent='❚❚ Pause'}
+
+/* ================= DRAW ================= */
 function rr(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);
   cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath()}
+const OWNC=i=>i===0?'#49c5dd':i===1?'#e2706b':i===2?'#a98ae0':i===3?'#8d98a4':'#4a241f';
 function draw(){
   cx.clearRect(0,0,W,H);
-  // ---- line band ----
-  cx.fillStyle='#0c1116'; rr(10,18,380,78,8); cx.fill();
+  cx.fillStyle='#0c1116'; rr(10,16,380,72,8); cx.fill();
   cx.strokeStyle='#1a222a'; cx.lineWidth=1; cx.stroke();
-  // edges
   for(let i=0;i<3;i++){
     const a=NODE[i],b=NODE[i+1];
     const strain=i===0?Math.min(1,S.testQ.length/7):0;
@@ -316,122 +512,106 @@ function draw(){
     cx.beginPath();cx.moveTo(a.x+NW/2,a.y);cx.lineTo(b.x-NW/2,b.y);cx.stroke();
     cx.setLineDash([]);
   }
-  // nodes
   NODE.forEach((n,i)=>{
-    let bc='#2f4654', glow=0;
-    if(i===0&&S.rte>1.15){bc='#f0a73d';glow=(Math.sin(S.t*6)+1)/2*0.5}
+    let bc='#2f4654',glow=0;
+    if(i===0&&S.rte>1.15){bc='#f0a73d';glow=(Math.sin(S.t*6)+1)/2*.5}
     if(i===1){const q=Math.min(1,S.testQ.length/7);
-      if(q>.6){bc='#e2706b';glow=(Math.sin(S.t*7)+1)/2*0.6} else if(q>.25)bc='#f0a73d'}
-    if(glow>0){cx.shadowColor=bc;cx.shadowBlur=12*glow}
+      if(q>.6){bc='#e2706b';glow=(Math.sin(S.t*7)+1)/2*.6}else if(q>.25)bc='#f0a73d'}
+    if(glow){cx.shadowColor=bc;cx.shadowBlur=12*glow}
     cx.fillStyle='#16222c'; rr(n.x-NW/2,n.y-NH/2,NW,NH,5); cx.fill();
-    cx.strokeStyle=bc; cx.lineWidth=1.4; cx.stroke(); cx.shadowBlur=0;
-    cx.fillStyle='#8fa0ae'; cx.font='9px ui-monospace,monospace'; cx.textAlign='center';
+    cx.strokeStyle=bc;cx.lineWidth=1.4;cx.stroke();cx.shadowBlur=0;
+    cx.fillStyle='#8fa0ae';cx.font='9px ui-monospace,monospace';cx.textAlign='center';
     cx.fillText(n.n,n.x,n.y+3.5);
   });
-  // test queue under TEST
   for(let i=0;i<Math.min(S.testQ.length,14);i++){
-    const m=S.testQ[i];
-    cx.fillStyle=m.bad?'#f0a73d':'#49c5dd';
-    cx.fillRect(NODE[1].x-26+(i%7)*7.6, NODE[1].y+20+Math.floor(i/7)*7, 5,5);
-  }
-  if(S.testQ.length>3){cx.fillStyle='#e5bd7e';cx.font='8px ui-monospace,monospace';
-    cx.textAlign='left';cx.fillText(S.testQ.length+' queued',NODE[1].x+30,NODE[1].y+26)}
-  // motes on edges
+    cx.fillStyle=S.testQ[i].bad?'#f0a73d':'#49c5dd';
+    cx.fillRect(NODE[1].x-26+(i%7)*7.6,NODE[1].y+18+Math.floor(i/7)*7,5,5)}
   for(const m of S.motes){
     if(m.hold)continue;
     const a=NODE[m.seg],b=NODE[m.seg+1];
-    const x=(a.x+NW/2)+((b.x-NW/2)-(a.x+NW/2))*m.p, y=a.y;
+    const x=(a.x+NW/2)+((b.x-NW/2)-(a.x+NW/2))*m.p;
     cx.fillStyle=m.bad?'#f0a73d':'#49c5dd';
     if(m.bad){cx.shadowColor='#f0a73d';cx.shadowBlur=7}
-    cx.fillRect(x-2.5,y-2.5,5,5); cx.shadowBlur=0;
+    cx.fillRect(x-2.5,a.y-2.5,5,5);cx.shadowBlur=0;
   }
-  // ---- divider ----
   cx.strokeStyle='#1a222a';cx.lineWidth=1;cx.beginPath();
-  cx.moveTo(10,110);cx.lineTo(390,110);cx.stroke();
+  cx.moveTo(10,102);cx.lineTo(390,102);cx.stroke();
   cx.fillStyle='#3b4852';cx.font='8px ui-monospace,monospace';cx.textAlign='left';
-  cx.fillText('THE WORLD — WHERE YOUR SILICON LIVES',12,106);
-  // segment labels
+  cx.fillText('THE '+ERAS[S.era].n+' MARKET',12,98);
   cx.textAlign='right';
   SEG.forEach(s=>{cx.fillStyle='#3a4a56';
     cx.fillText(s[0],392,GY+((s[1]+s[2])/2)*DY+3)});
-  // ---- world dots ----
   for(const d of S.dots){
-    let c='#141b21';
-    if(d.own===1)c='#49c5dd'; else if(d.own===2)c='#8c3c3c'; else if(d.own===3)c='#4a241f';
-    cx.fillStyle=c;
-    const s=d.own?8:5, o=d.own?0:1.5;
+    cx.fillStyle=d.own<0?'#141b21':OWNC(d.own);
+    const s=d.own<0?5:8;
     cx.fillRect(d.x-s/2,d.y-s/2,s,s);
-    if(d.own===1&&d.bad){            // latent defect: faint warm core
-      const f=0.55+0.45*Math.sin(S.t*3+d.fl);
+    if(d.own===0&&d.bad){
+      const f=.55+.45*Math.sin(S.t*3+d.fl);
       cx.fillStyle='rgba(240,167,61,'+(0.45*f).toFixed(2)+')';
       cx.fillRect(d.x-2,d.y-2,4,4);
     }
-    if(d.burn>0){                     // burning
-      const f=Math.random()*0.5+0.5;
-      cx.fillStyle='rgba(226,112,107,'+(d.burn*f*0.9).toFixed(2)+')';
-      cx.fillRect(d.x-4.5,d.y-4.5,9,9);
-    }
+    if(d.burn>0){const f=Math.random()*.5+.5;
+      cx.fillStyle='rgba(226,112,107,'+(d.burn*f*.9).toFixed(2)+')';
+      cx.fillRect(d.x-4.5,d.y-4.5,9,9)}
   }
-  // ---- flights ----
   for(const f of S.flights){
-    const p=f.p, ex=1-Math.pow(1-p,2);
-    const x=f.x0+(f.x1-f.x0)*ex, y=f.y0+(f.y1-f.y0)*ex - Math.sin(p*Math.PI)*22;
+    const ex=1-Math.pow(1-f.p,2);
+    const x=f.x0+(f.x1-f.x0)*ex, y=f.y0+(f.y1-f.y0)*ex-Math.sin(f.p*Math.PI)*22;
     cx.fillStyle=f.bad?'#f0a73d':'#49c5dd';
     if(f.bad){cx.shadowColor='#f0a73d';cx.shadowBlur=8}
-    cx.fillRect(x-2.5,y-2.5,5,5); cx.shadowBlur=0;
+    cx.fillRect(x-2.5,y-2.5,5,5);cx.shadowBlur=0;
   }
-  // ---- blooms ----
   for(const b of S.blooms){
-    cx.strokeStyle=b.kind==='catch'?'rgba(98,201,139,'+b.a.toFixed(2)+')'
-                                   :'rgba(226,112,107,'+b.a.toFixed(2)+')';
+    cx.strokeStyle=(b.kind==='catch'?'rgba(98,201,139,':'rgba(226,112,107,')+b.a.toFixed(2)+')';
     cx.lineWidth=b.kind==='catch'?1.6:2.2;
     cx.beginPath();cx.arc(b.x,b.y,b.r,0,6.284);cx.stroke();
   }
 }
-
-/* ---------- hud ---------- */
 function hud(){
-  document.getElementById('hYear').textContent=1+Math.floor(S.day/360);
-  const c=document.getElementById('hCash');
+  const E=ERAS[S.era];
+  $('eName').textContent=E.n; $('eYears').textContent=E.y;
+  $('eWins').textContent='wins on '+E.cap;
+  $('eTrack').style.width=Math.min(100,S.eraT/E.dur*100)+'%';
+  const c=$('hCash');
   c.textContent=(S.cash<0?'-$':'$')+Math.abs(Math.round(S.cash))+'k';
   c.style.color=S.cash<0?'var(--rd)':'var(--gr)';
-  const mine=S.dots.filter(d=>d.own===1).length, sh=mine/S.dots.length;
-  document.getElementById('hShare').textContent=Math.round(sh*100)+'%';
-  document.getElementById('bShare').style.width=(sh*100)+'%';
-  document.getElementById('hRep').textContent=Math.round(S.rep*100);
-  const br=document.getElementById('bRep');
-  br.style.width=(S.rep*100)+'%';
+  const me=shares().find(o=>o.i===0);
+  $('hShare').textContent=Math.round(me.pc*100)+'%';
+  $('bShare').style.width=(me.pc*100)+'%';
+  $('hRep').textContent=Math.round(S.rep*100);
+  const br=$('bRep'); br.style.width=(S.rep*100)+'%';
   br.style.background=S.rep<.4?'var(--rd)':S.rep<.7?'var(--am)':'var(--gr)';
+  const f=S.A[0].cap[S.era];
+  $('hFit').textContent=f.toFixed(1);
+  $('bFit').style.width=(f/5*100)+'%';
+  $('score').innerHTML=S.A.map(a=>`<div>
+    <span style="color:${a.c}">${a.n}</span>
+    <b style="color:${a.c}">${a.pts}</b>
+    <em>${a.cap[S.era].toFixed(1)} fit</em></div>`).join('');
 }
-
-/* ---------- loop ---------- */
 let last=performance.now();
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000); last=now;
-  if(S.run)for(let i=0;i<S.speed;i++)step(dt);
+  if(S.run&&S.phase==='play')for(let i=0;i<S.speed&&S.run;i++)step(dt);
   draw(); hud(); requestAnimationFrame(frame);
 }
 
-/* ---------- controls ---------- */
-const cov=document.getElementById('cov'),mnt=document.getElementById('mnt'),rte=document.getElementById('rte');
+/* ================= CONTROLS ================= */
+const cov=$('cov'),mnt=$('mnt'),rte=$('rte');
 function lev(){
-  S.cov=+cov.value/100; S.mnt=+mnt.value/100; S.rte=+rte.value/100;
-  document.getElementById('vCov').textContent=cov.value+'%';
-  document.getElementById('vMnt').textContent=mnt.value+'%';
-  document.getElementById('vRte').textContent=(+rte.value/100).toFixed(1)+'×';
+  S.cov=+cov.value/100;S.mnt=+mnt.value/100;S.rte=+rte.value/100;
+  $('vCov').textContent=cov.value+'%';
+  $('vMnt').textContent=mnt.value+'%';
+  $('vRte').textContent=(+rte.value/100).toFixed(1)+'×';
 }
 [cov,mnt,rte].forEach(e=>e.oninput=lev);
-document.getElementById('bPause').onclick=e=>{S.run=!S.run;
-  e.target.textContent=S.run?'❚❚ Pause':'▶ Run'};
-function spd(v,el){S.speed=v;['b1','b3'].forEach(id=>
-  document.getElementById(id).classList.toggle('on',id===el))}
-document.getElementById('b1').onclick=()=>spd(1,'b1');
-document.getElementById('b3').onclick=()=>spd(3,'b3');
-document.getElementById('bReset').onclick=()=>{reset();lev();
-  document.getElementById('over').style.display='none';
-  document.getElementById('bPause').textContent='❚❚ Pause'};
+$('bPause').onclick=e=>{if(S.phase!=='play')return;
+  S.run=!S.run;e.target.textContent=S.run?'❚❚ Pause':'▶ Run'};
+function spd(v,el){S.speed=v;['b1','b3'].forEach(id=>$(id).classList.toggle('on',id===el))}
+$('b1').onclick=()=>spd(1,'b1'); $('b3').onclick=()=>spd(3,'b3');
+$('bReset').onclick=hardReset;
 
-fit(); reset(); lev(); requestAnimationFrame(frame);
+fit(); reset(); lev(); showIntro(); requestAnimationFrame(frame);
 </script>
 </body>
 </html>
