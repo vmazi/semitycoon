@@ -207,7 +207,7 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 
 <div class="top">
   <a href="../design/">← design</a><a href="../mockups/">mockups</a>
-  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b9</span></h1>
+  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b10</span></h1>
 </div>
 
 <div class="wrap">
@@ -286,6 +286,14 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
+// The DOM is only touched when a value actually changes. Rewriting innerHTML
+// every frame floods any MutationObserver on the page (ad blockers run one)
+// and saturates the main thread on a phone, which stops taps registering.
+function setHTML(id,html){const el=$(id); if(!el||el.__h===html)return; el.__h=html; el.innerHTML=html}
+function setText(id,v){const el=$(id); v=String(v); if(!el||el.__t===v)return; el.__t=v; el.textContent=v}
+function setW(id,w,bg){const el=$(id); if(!el)return;
+  if(el.__w!==w){el.__w=w; el.style.width=w}
+  if(bg&&el.__bg!==bg){el.__bg=bg; el.style.background=bg}}
 function showErr(m){const b=$('errbar'); if(!b)return;
   b.style.display='block'; b.textContent='\u26a0 '+m;}
 window.onerror=function(m,u,l,c){showErr(m+'  (line '+l+':'+c+')');};
@@ -436,21 +444,23 @@ function playCard(i){
 }
 function drawHand(){
   const h=$('hand'); if(!h)return;
-  h.innerHTML=S.hand.map((ix,i)=>{const c=EXEC[ix];
+  setHTML('hand',S.hand.map((ix,i)=>{const c=EXEC[ix];
     return `<button data-act="playCard" data-arg="${i}" ${S.execPlays>0&&S.phase==='play'?'':'disabled'}>
-      <b>${c.l}</b><small>${c.s}</small></button>`}).join('');
-  $('execPlays').textContent=S.execPlays;
-  const bb=$('bBurn'), bc=$('bCont');
-  if(bb){bb.style.width=(S.burn*100)+'%';
-    bb.style.background=S.burn>.75?'var(--rd)':S.burn>.45?'var(--am)':'var(--gr)';
-    $('vBurn').textContent=Math.round(S.burn*100);
-    $('vBurn').style.color=S.burn>.75?'var(--rd)':S.burn>.45?'var(--am)':'var(--gr)';
-    bc.style.width=(S.cont*100)+'%';
-    bc.style.background=S.cont>.6?'var(--rd)':S.cont>.35?'var(--am)':'var(--gr)';
-    $('vCont').textContent=Math.round(S.cont*100);
-    $('vCont').style.color=S.cont>.6?'var(--rd)':S.cont>.35?'var(--am)':'var(--gr)';
-    $('execFx').innerHTML=`defects <b style="color:${S.cont>.35?'var(--am)':'var(--mut)'}">+${Math.round(S.cont*25)}%</b> from contention`+
-      ` · ad-hoc costs <b style="color:${S.burn>.45?'var(--am)':'var(--mut)'}">+${Math.round(S.burn*60)}%</b> from burnout`;
+      <b>${c.l}</b><small>${c.s}</small></button>`}).join(''));
+  setText('execPlays',S.execPlays);
+  const bb=$('bBurn');
+  if(bb){
+    const burnC=S.burn>.75?'var(--rd)':S.burn>.45?'var(--am)':'var(--gr)';
+    const contC=S.cont>.6?'var(--rd)':S.cont>.35?'var(--am)':'var(--gr)';
+    setW('bBurn',(S.burn*100).toFixed(1)+'%',burnC);
+    setW('bCont',(S.cont*100).toFixed(1)+'%',contC);
+    setText('vBurn',Math.round(S.burn*100));
+    setText('vCont',Math.round(S.cont*100));
+    const vb=$('vBurn'), vc=$('vCont');
+    if(vb.__c!==burnC){vb.__c=burnC;vb.style.color=burnC}
+    if(vc.__c!==contC){vc.__c=contC;vc.style.color=contC}
+    setHTML('execFx',`defects <b style="color:${S.cont>.35?'var(--am)':'var(--mut)'}">+${Math.round(S.cont*25)}%</b> from contention`+
+      ` · ad-hoc costs <b style="color:${S.burn>.45?'var(--am)':'var(--mut)'}">+${Math.round(S.burn*60)}%</b> from burnout`);
   }
 }
 
@@ -1063,10 +1073,10 @@ function updateReadouts(){
     ['#49c5dd',Math.round(D.catchR*100)+'%','caught','coverage'],
     [D.escPerSec>.25?'#e2706b':D.escPerSec>.08?'#f0a73d':'#62c98c',D.escPerSec.toFixed(2),'escaping /s','into the world'],
     [S.fires?'#e2706b':'#62c98c',S.fires,'field failures','so far']];
-  $('chain').innerHTML=st.map((x,i)=>
+  setHTML('chain',st.map((x,i)=>
     `<div class="st"><b style="color:${x[0]}">${x[1]}</b><span>${x[2]}</span><em>${x[3]}</em></div>`
-    +(i<st.length-1?'<div class="ar">›</div>':'')).join('');
-  $('field').innerHTML=SEG.map(sg=>{
+    +(i<st.length-1?'<div class="ar">›</div>':'')).join(''));
+  setHTML('field',SEG.map(sg=>{
     const name=sg[0], per=UNITS[name];
     let mine=0,tot=0,latent=0,own=[0,0,0,0];
     for(const d of S.dots){
@@ -1079,39 +1089,42 @@ function updateReadouts(){
       <div class="fb">${bars}</div>
       <div class="fr" style="color:${latent>0?'var(--am)':'var(--dim)'}">${
         latent>0?'⚠ '+fmtU(latent)+' at risk':'clean'}</div></div>`;
-  }).join('');
+  }).join(''));
 }
 function hud(){
+  const now=performance.now();
+  if(now-hudLast<130)return;          // ~7 updates a second is plenty for numbers
+  hudLast=now;
   const E=ERAS[S.era];
-  $('eName').textContent=E.n; $('eYears').textContent=E.y;
-  $('eWins').textContent='wins on '+E.cap;
-  $('eTrack').style.width=Math.min(100,S.eraT/E.dur*100)+'%';
-  const c=$('hCash'); c.textContent=fmtC(S.cash);
-  c.style.color=S.cash<0?'var(--rd)':'var(--gr)';
+  setText('eName',E.n); setText('eYears',E.y); setText('eWins','wins on '+E.cap);
+  setW('eTrack',Math.min(100,S.eraT/E.dur*100).toFixed(1)+'%');
+  setText('hCash',fmtC(S.cash));
+  const cc=S.cash<0?'var(--rd)':'var(--gr)'; const ce=$('hCash');
+  if(ce.__c!==cc){ce.__c=cc;ce.style.color=cc}
   const me=shares().find(o=>o.i===0);
-  $('hShare').textContent=Math.round(me.pc*100)+'%';
-  $('bShare').style.width=(me.pc*100)+'%';
-  $('hRep').textContent=Math.round(S.rep*100);
-  const br=$('bRep'); br.style.width=(S.rep*100)+'%';
-  br.style.background=S.rep<.4?'var(--rd)':S.rep<.7?'var(--am)':'var(--gr)';
+  setText('hShare',Math.round(me.pc*100)+'%');
+  setW('bShare',(me.pc*100).toFixed(1)+'%');
+  setText('hRep',Math.round(S.rep*100));
+  setW('bRep',(S.rep*100).toFixed(1)+'%',S.rep<.4?'var(--rd)':S.rep<.7?'var(--am)':'var(--gr)');
   updateReadouts(); drawHand();
   const R=claimRates(), bestR=Math.max(...R.riv), bi=R.riv.indexOf(bestR)+1;
-  $('hFit').textContent=R.you.toFixed(2);
-  $('hFit').style.color=R.you>=bestR?'var(--gr)':'var(--rd)';
-  $('bFit').style.width=Math.min(100,R.you/Math.max(bestR,R.you,0.01)*100)+'%';
-  $('bFit').style.background=R.you>=bestR?'var(--gr)':'var(--rd)';
-  $('hFitSub').textContent='best rival '+bestR.toFixed(2);
+  setText('hFit',R.you.toFixed(2));
+  const fc=R.you>=bestR?'var(--gr)':'var(--rd)'; const fe=$('hFit');
+  if(fe.__c!==fc){fe.__c=fc;fe.style.color=fc}
+  setW('bFit',Math.min(100,R.you/Math.max(bestR,R.you,0.01)*100).toFixed(1)+'%',fc);
+  setText('hFitSub','best rival '+bestR.toFixed(2));
   const myCap=S.A[0].cap[S.era], bestCap=Math.max(...S.A.slice(1).map(a=>a.cap[S.era]));
-  $('why').innerHTML = R.you>=bestR
-    ? `You are taking sockets faster than anyone. <b>${R.ship.toFixed(1)}/s</b> off the line × ${stars(myCap)}.`
+  setHTML('why', R.you>=bestR
+    ? `You are taking sockets faster than anyone. <b>${R.ship.toFixed(1)}/s</b> off the line \u00d7 ${stars(myCap)}.`
     : myCap>=bestCap
-      ? `You are ${stars(myCap)} against ${S.A[bi].n}'s ${stars(S.A[bi].cap[S.era])} — <b style="color:var(--am)">your plant is the limit, not your R&amp;D.</b>`
-      : `${S.A[bi].n} is ahead on both: ${stars(S.A[bi].cap[S.era])} against your ${stars(myCap)}, and <b>${bestR.toFixed(2)}</b> sockets/sec vs <b>${R.you.toFixed(2)}</b>.`;
-  $('score').innerHTML=S.A.map(a=>`<div><span style="color:${a.c}">${a.n}</span>
+      ? `You are ${stars(myCap)} against ${S.A[bi].n}'s ${stars(S.A[bi].cap[S.era])} \u2014 <b style="color:var(--am)">your plant is the limit, not your R&amp;D.</b>`
+      : `${S.A[bi].n} is ahead on both: ${stars(S.A[bi].cap[S.era])} against your ${stars(myCap)}, and <b>${bestR.toFixed(2)}</b> sockets/sec vs <b>${R.you.toFixed(2)}</b>.`);
+  setHTML('score',S.A.map(a=>`<div><span style="color:${a.c}">${a.n}</span>
     <b style="color:${a.c}">${a.pts}</b>
     <em>${(a===S.A[0]?R.you:R.riv[S.A.indexOf(a)-1]).toFixed(2)}/s</em>
-    <em>${stars(a.cap[S.era],9)}</em></div>`).join('');
+    <em>${stars(a.cap[S.era],9)}</em></div>`).join(''));
 }
+let hudLast=0;
 let last=performance.now();
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000); last=now;

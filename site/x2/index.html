@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SEMI TYCOON — five eras</title>
+<style>
+:root{
+  --bg:#0a0c0f; --panel:#12161b; --panel2:#171c23; --line:#232b34;
+  --tx:#c7d2dc; --mut:#6d7d8c; --dim:#44525e;
+  --cy:#49c5dd; --am:#f0a73d; --gr:#62c98c; --rd:#e2706b; --vi:#a98ae0;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);
+  font-size:15px;line-height:1.5;overflow-x:hidden}
+h1{font-family:var(--mono);font-size:16px;margin:0}
+a{color:var(--cy)}
+.wrap{max-width:560px;margin:0 auto;padding:0 11px 34px}
+.top{display:flex;align-items:center;gap:9px;padding:10px 11px;border-bottom:1px solid var(--line);
+  max-width:560px;margin:0 auto}
+.top a{font-family:var(--mono);font-size:10.5px;color:var(--mut);text-decoration:none;
+  border:1px solid var(--line);padding:4px 8px;border-radius:5px}
+.top .sp{flex:1}
+
+.ctl{display:flex;gap:6px;margin:11px 0 9px}
+.ctl button{flex:1;font-family:var(--mono);font-size:11px;padding:9px 4px;border-radius:7px;
+  border:1px solid var(--line);background:var(--panel2);color:var(--tx);cursor:pointer}
+.ctl button.on{background:var(--cy);border-color:var(--cy);color:#06181d;font-weight:700}
+.ctl button.go{background:var(--gr);border-color:var(--gr);color:#062015;font-weight:700}
+
+.erabar{margin-bottom:8px;background:var(--panel);border:1px solid var(--line);
+  border-radius:9px;padding:9px 11px}
+.erah{display:flex;align-items:baseline;gap:8px;font-family:var(--mono);font-size:11px;flex-wrap:wrap}
+.erah b{font-size:14px;color:var(--cy)}
+.erah .yr{color:var(--dim);font-size:10px}
+.erah .sp{flex:1}
+.erah .wins{color:var(--vi);font-size:10px}
+.etrack{height:5px;background:#0b1014;border-radius:3px;margin-top:7px;overflow:hidden;position:relative}
+.etrack i{display:block;height:100%;background:linear-gradient(90deg,#2a6475,#49c5dd);border-radius:3px}
+.etrack u{position:absolute;top:-2px;width:1px;height:9px;background:#3d4c58}
+
+.score{display:flex;gap:5px;margin-bottom:8px}
+.score div{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:7px;
+  padding:5px 6px;text-align:center;min-width:0}
+.score span{display:block;font-family:var(--mono);font-size:8.5px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.score b{font-family:var(--mono);font-size:16px;display:block;line-height:1.25}
+.score em{font-style:normal;font-family:var(--mono);font-size:8px;color:var(--dim);
+  display:block;white-space:nowrap}
+
+.hud{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.hud div{flex:1;min-width:76px;background:var(--panel);border:1px solid var(--line);
+  border-radius:7px;padding:6px 8px}
+.hud span{display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.11em;
+  color:var(--dim);text-transform:uppercase}
+.hud b{font-family:var(--mono);font-size:15px;font-weight:600}
+.hud em{display:block;font-style:normal;font-family:var(--mono);font-size:8px;
+  color:var(--dim);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{height:4px;background:#0b1014;border-radius:3px;margin-top:4px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px;transition:width .3s}
+
+canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
+  border-radius:10px;background:#070a0d;touch-action:pan-y}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;font-family:var(--mono);
+  font-size:9.5px;color:var(--dim)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+
+.chain{margin-top:10px;background:var(--panel);border:1px solid var(--line);
+  border-radius:10px;padding:10px 8px;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.chain::-webkit-scrollbar{display:none}
+.chain .st{flex:1 1 0;min-width:0;text-align:center;padding:0 2px}
+.chain .st b{display:block;font-family:var(--mono);font-size:14px;line-height:1.2}
+.chain .st span{display:block;font-family:var(--mono);font-size:8px;color:var(--dim);
+  text-transform:uppercase;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chain .st em{display:block;font-style:normal;font-family:var(--mono);font-size:8px;
+  color:var(--dim);margin-top:1px;white-space:nowrap}
+.chain .ar{flex:0 0 10px;display:flex;align-items:center;justify-content:center;color:#2b3742;font-size:11px}
+.why{margin-top:7px;font-family:var(--mono);font-size:10.5px;line-height:1.55;color:var(--mut);padding:0 2px}
+.why b{color:var(--tx)}
+
+.field{display:flex;gap:5px;margin-top:8px}
+.field div{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);
+  border-radius:7px;padding:5px 6px}
+.field .fn{font-family:var(--mono);font-size:8px;color:var(--dim);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.field .fu{font-family:var(--mono);font-size:13px;color:var(--cy);line-height:1.3}
+.field .fb{height:3px;background:#0b1014;border-radius:2px;margin-top:3px;display:flex;overflow:hidden}
+.field .fb i{display:block;height:100%}
+.field .fr{font-family:var(--mono);font-size:8px;margin-top:3px;white-space:nowrap}
+
+/* gauges: visible, not draggable */
+.gauges{margin-top:10px;background:var(--panel);border:1px solid var(--line);
+  border-radius:10px;padding:11px 13px}
+.gtitle{font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--dim);
+  text-transform:uppercase;margin-bottom:9px}
+.g{margin-bottom:9px}
+.g:last-child{margin-bottom:0}
+.gh{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:11px}
+.gh b{color:var(--tx)}
+.gh i{font-style:normal;font-size:13px}
+.gbar{height:7px;background:#0b1014;border-radius:4px;margin-top:4px;overflow:hidden}
+.gbar i{display:block;height:100%;border-radius:4px;transition:width .4s}
+.g small{display:block;font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:3px}
+
+/* ad-hoc actions */
+.acts{margin-top:10px;background:var(--panel);border:1px solid var(--line);
+  border-radius:10px;padding:11px 13px}
+.acts .row{display:flex;flex-wrap:wrap;gap:6px}
+.acts button{flex:1 1 calc(50% - 3px);min-width:0;text-align:left;font-family:var(--mono);
+  font-size:10px;padding:8px 9px;border-radius:7px;border:1px solid var(--line);
+  background:var(--panel2);color:var(--tx);cursor:pointer;line-height:1.35}
+.acts button b{display:block;font-size:10.5px;margin-bottom:2px}
+.acts button span{color:var(--gr)}
+.acts button small{display:block;color:var(--dim);font-size:9px;margin-top:2px}
+.acts button:disabled{opacity:.34;cursor:default}
+.acts button.used{opacity:.3}
+
+.exec{margin-top:10px;background:var(--panel);border:1px solid var(--line);
+  border-radius:10px;padding:11px 13px}
+.meters{display:flex;gap:9px;margin-bottom:8px}
+.meters div{flex:1}
+.meters span{display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;color:var(--dim)}
+.meters b{font-family:var(--mono);font-size:15px}
+.st5{position:relative;display:inline-block;white-space:nowrap;vertical-align:-1px;
+  overflow:hidden;line-height:0}
+.st5 i{display:inline-block;background:#2b3644;
+  -webkit-clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
+.st5 .sf{position:absolute;left:0;top:0;height:100%;overflow:hidden;white-space:nowrap;line-height:0}
+.st5 .sf i{background:#a98ae0}
+
+.execfx{font-family:var(--mono);font-size:9.5px;color:var(--mut);margin-bottom:9px}
+.execfx b{color:var(--tx)}
+.hand{display:flex;gap:6px;margin-bottom:7px}
+.hand button{flex:1 1 0;min-width:0;text-align:left;font-family:var(--mono);font-size:9.5px;
+  padding:9px 8px;border-radius:8px;border:1px solid #2c3845;background:var(--panel2);
+  color:var(--tx);cursor:pointer;line-height:1.35}
+.hand button b{display:block;font-size:10px;margin-bottom:3px;color:var(--vi)}
+.hand button small{display:block;color:var(--dim);font-size:8.5px;line-height:1.45}
+.hand button:disabled{opacity:.35;cursor:default}
+.redeal{width:100%;font-family:var(--mono);font-size:10px;padding:8px;border-radius:7px;
+  border:1px dashed var(--line);background:transparent;color:var(--mut);cursor:pointer}
+.log{margin-top:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:9px 11px;height:124px;overflow-y:auto;font-family:var(--mono);font-size:10.5px;line-height:1.6}
+.log div{padding:2px 0;border-bottom:1px solid #161d24;color:var(--mut)}
+.log div:last-child{border:0}
+.log .d{color:var(--dim);margin-right:6px}
+.log .fire{color:#e8a9a5} .log .good{color:#8fd3ab} .log .era{color:#b8a4e8}
+.log .act{color:#8fc7d8} .log .bad{color:#e5bd7e}
+
+.over{position:fixed;inset:0;background:rgba(6,8,11,.95);z-index:40;overflow-y:auto;padding:14px}
+.ocard{max-width:430px;margin:10px auto;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:18px;padding-bottom:10px}
+.ocard h2{font-family:var(--mono);font-size:17px;margin:0 0 3px;line-height:1.3}
+.ocard .sub{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--am);
+  text-transform:uppercase;margin-bottom:10px}
+.ocard p{color:#9fb0bf;font-size:13.5px;margin:10px 0}
+.opts{display:flex;flex-direction:column;gap:7px;margin-top:13px}
+.opts button{text-align:left;padding:11px 13px;border-radius:8px;border:1px solid var(--line);
+  background:var(--panel2);color:var(--tx);cursor:pointer;font-size:13px;font-family:var(--sans)}
+.opts button:hover{border-color:#2e4a56}
+.opts button b{display:block;font-family:var(--mono);font-size:12px;margin-bottom:3px}
+.opts button small{display:block;font-family:var(--mono);font-size:10px;color:var(--mut);line-height:1.5}
+.opts button .risk{color:var(--am)}
+.opts button .gain{color:var(--gr)}
+.opts button .cost{color:var(--rd)}
+
+.stand div{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #1a222a;
+  font-family:var(--mono);font-size:11.5px}
+.stand div:last-child{border:0}
+.stand .pos{flex:0 0 16px;color:var(--dim)}
+.stand .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stand .pc{flex:0 0 70px;text-align:right;color:var(--tx)}
+.stand .pt{flex:0 0 30px;text-align:right}
+
+.gen{margin-top:14px}
+.gengrp{margin-bottom:11px}
+.gengrp h4{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--vi);
+  margin:0 0 6px;text-transform:uppercase}
+.gp{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:7px;
+  border:1px solid var(--line);background:var(--panel2);margin-bottom:5px;cursor:pointer}
+.gp.on{border-color:var(--vi);background:#1a1626}
+.gp.off{opacity:.35;cursor:default}
+.gp .pk{flex:0 0 18px;font-family:var(--mono);font-size:10px;color:var(--vi)}
+.gp .gt{flex:1;font-size:12.5px}
+.gp .gt small{display:block;font-family:var(--mono);font-size:9.5px;color:var(--mut);margin-top:2px}
+.budget{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;
+  background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin-top:12px}
+.budget b{color:var(--vi);font-size:15px}
+.budget .sp{flex:1}
+.obtn{position:sticky;bottom:-2px;z-index:5;width:100%;margin-top:14px;
+  font-family:var(--mono);font-size:13px;padding:14px;border-radius:8px;border:0;
+  background:var(--cy);color:#06181d;font-weight:700;cursor:pointer;
+  box-shadow:0 -10px 18px rgba(18,22,27,.95)}
+.obtn:disabled{opacity:.4}
+.hint{margin-top:11px;font-size:13px;color:var(--mut);line-height:1.6}
+.hint b{color:var(--am)}
+</style>
+</head>
+<body>
+
+<div id="errbar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99;
+  background:#5f1f1f;color:#ffd9d6;font-family:ui-monospace,monospace;font-size:11px;
+  padding:8px 10px;line-height:1.4"></div>
+
+<div class="top">
+  <a href="../design/">← design</a><a href="../mockups/">mockups</a>
+  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">x2-no-stars</span></h1>
+</div>
+
+<div class="wrap">
+  <div class="ctl">
+    <button id="bPause">▶ Run</button>
+    <button id="b1" class="on">1×</button>
+    <button id="b3">3×</button>
+    <button id="bReset">Restart</button>
+  </div>
+
+  <div class="erabar">
+    <div class="erah"><b id="eName">MAINFRAME</b><span class="yr" id="eYears">1965–1980</span>
+      <span class="sp"></span><span class="wins" id="eWins">wins on RELIABILITY</span></div>
+    <div class="etrack"><i id="eTrack" style="width:0%"></i>
+      <u style="left:25%"></u><u style="left:50%"></u><u style="left:75%"></u></div>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="hud">
+    <div><span>Capital</span><b id="hCash" style="color:var(--gr)">$0k</b></div>
+    <div><span>This market</span><b id="hShare" style="color:var(--cy)">0%</b>
+      <div class="bar"><i id="bShare" style="background:var(--cy);width:0%"></i></div></div>
+    <div><span>Reputation</span><b id="hRep" style="color:var(--gr)">100</b>
+      <div class="bar"><i id="bRep" style="background:var(--gr);width:100%"></i></div></div>
+    <div><span>Sockets / sec</span><b id="hFit" style="color:var(--vi)">0.00</b>
+      <div class="bar"><i id="bFit" style="background:var(--vi);width:0%"></i></div>
+      <em id="hFitSub">&nbsp;</em></div>
+  </div>
+
+  <canvas id="cv" width="400" height="400"></canvas>
+  <div class="legend" id="legend"></div>
+  <div class="field" id="field"></div>
+
+  <div class="chain" id="chain"></div>
+  <div class="why" id="why"></div>
+
+  <div class="gauges">
+    <div class="gtitle">Plant condition — moved by your decisions, not by hand</div>
+    <div class="g"><div class="gh"><b>TEST COVERAGE</b><i id="vCov" style="color:#49c5dd">70%</i></div>
+      <div class="gbar"><i id="gCov" style="background:#49c5dd"></i></div>
+      <small id="dCov">&nbsp;</small></div>
+    <div class="g"><div class="gh"><b>MAINTENANCE</b><i id="vMnt" style="color:#62c98c">70%</i></div>
+      <div class="gbar"><i id="gMnt" style="background:#62c98c"></i></div>
+      <small id="dMnt">&nbsp;</small></div>
+    <div class="g"><div class="gh"><b>OUTPUT RATE</b><i id="vRte" style="color:#f0a73d">1.0×</i></div>
+      <div class="gbar"><i id="gRte" style="background:#f0a73d"></i></div>
+      <small id="dRte">&nbsp;</small></div>
+  </div>
+
+  <div class="acts">
+    <div class="gtitle">Ad-hoc actions — paid for out of capital</div>
+    <div class="row" id="actRow"></div>
+  </div>
+
+  <div class="exec">
+    <div class="gtitle">Executive focus — <b id="execPlays" style="color:var(--vi)">2</b> plays left this era</div>
+    <div class="meters">
+      <div><span>BURNOUT</span><b id="vBurn">0</b><div class="bar"><i id="bBurn"></i></div></div>
+      <div><span>CONTENTION</span><b id="vCont">10</b><div class="bar"><i id="bCont"></i></div></div>
+    </div>
+    <div class="execfx" id="execFx"></div>
+    <div class="hand" id="hand"></div>
+    <button class="redeal" data-act="redeal">Ask for different cards &nbsp;·&nbsp; +4 burnout</button>
+  </div>
+
+  <div class="log" id="log"></div>
+
+  <p class="hint"><b>How you win:</b> five eras, most eras won takes it. Quarterly scenarios
+  and ad-hoc spending run the plant; the generational planning between eras decides which
+  era you are actually built for.</p>
+</div>
+
+<div class="over" id="over" style="display:none"><div class="ocard" id="ocard"></div></div>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+function showErr(m){const b=$('errbar'); if(!b)return;
+  b.style.display='block'; b.textContent='\u26a0 '+m;}
+window.onerror=function(m,u,l,c){showErr(m+'  (line '+l+':'+c+')');};
+const cv=$('cv'), cx=cv.getContext('2d'); const W=400,H=400;
+function fit(){const d=window.devicePixelRatio||1,w=cv.clientWidth;
+  cv.width=w*d;cv.height=w*d;cx.setTransform(d*w/W,0,0,d*w/W,0,0)}
+addEventListener('resize',fit);
+
+/* ================= ERAS ================= */
+const ERAS=[
+ {n:'MAINFRAME',  y:'1965–1980', cap:'RELIABILITY',      dur:46,
+  d:'A few enormous machines that must never fail. Volume is irrelevant — a field failure is a scandal.'},
+ {n:'PC',         y:'1980–1995', cap:'COST / VOLUME',    dur:46,
+  d:'Volume explodes and price collapses. Whoever makes it cheapest, in the most places, wins.'},
+ {n:'NETWORKING', y:'1995–2005', cap:'INTEGRATION',      dur:46,
+  d:'Everything has to talk to everything. The win is putting more functions on one die.'},
+ {n:'MOBILE',     y:'2005–2015', cap:'POWER EFFICIENCY', dur:46,
+  d:'It runs on a battery in a pocket. Performance per watt is the only number anyone reads.'},
+ {n:'CLOUD / AI', y:'2015–2030', cap:'PACKAGING / SCALE',dur:46,
+  d:'Dies too big to yield, stacked and stitched together. Packaging is the whole game.'}];
+const NERA=ERAS.length, QPE=4;                      // quarters per era
+
+/* ================= WORLD ================= */
+const COLS=20,ROWS=15,DX=16.4,DY=16.4,GX=16,GY=128;
+const SEG=[['CONSUMER',0,4],['AUTOMOTIVE',5,8],['DATACENTER',9,11],['GRID / INDUSTRIAL',12,14]];
+const SEGINFO={
+ CONSUMER:{rep:.028,cost:420,txt:'thermal event — charger fire in a home'},
+ AUTOMOTIVE:{rep:.058,cost:1150,txt:'ECU failure — vehicle recall opened'},
+ DATACENTER:{rep:.044,cost:760,txt:'silent data corruption — account lost'},
+ 'GRID / INDUSTRIAL':{rep:.036,cost:560,txt:'inverter fire — site burned'}};
+function segOf(r){for(const s of SEG)if(r>=s[1]&&r<=s[2])return s[0];return 'CONSUMER'}
+const UNITS={CONSUMER:180,AUTOMOTIVE:40,DATACENTER:12,'GRID / INDUSTRIAL':25};
+function fmtU(k){return k>=1000?(k/1000).toFixed(1)+'M':Math.round(k)+'k'}
+function fmtC(k){return (k<0?'-$':'$')+Math.abs(Math.round(k))+'k'}
+
+/* ================= ACTORS ================= */
+const ROSTER=[
+ {n:'YOU',      c:'#49c5dd', doc:null},
+ {n:'HOSHINO',  c:'#e2706b', doc:0.10, bio:'always builds for now'},
+ {n:'KAITO',    c:'#a98ae0', doc:0.80, bio:'always builds for next'},
+ {n:'MERIDIAN', c:'#8d98a4', doc:0.45, bio:'splits evenly, every time'}];
+const BURN=9;
+const TUNE={rb:0.16,rc:0.07,fb:0.35,fc:0.12,cv:0.55,rd:3.2,nx:1.0,cg:3000};
+const NODE=[{n:'FAB',x:52,y:54},{n:'TEST',x:148,y:54},{n:'PACK',x:244,y:54},{n:'SHIP',x:340,y:54}];
+const NW=58,NH=28;
+
+/* ================= AD-HOC ACTIONS ================= */
+const ADHOC=[
+ {id:'ot',  l:'Overtime shifts',   cost:1100, s:'+0.20 output, −0.08 maintenance · this era',
+  fx:s=>{s.rte+=0.20; s.mnt-=0.08}},
+ {id:'pm',  l:'Emergency PM sweep',cost:1400, s:'+0.18 maintenance',
+  fx:s=>{s.mnt+=0.18}},
+ {id:'tst', l:'Expand test floor',  cost:2200, s:'coverage stops slowing the line',
+  fx:s=>{s.testFast=true}},
+ {id:'poa', l:'Poach a rival lead', cost:2600, s:'+0.4 your capability, −0.35 theirs', need:'eq',
+  fx:s=>{const r=bestRival(); s.A[0].cap[s.era]+=0.4; r.cap[s.era]=Math.max(0,r.cap[s.era]-0.35);
+         log('Poached a lead engineer from '+r.n+'.','act')}},
+ {id:'war', l:'Price war',          cost:2400, s:'every rival −25% socket rate · this era',
+  fx:s=>{for(let i=1;i<s.A.length;i++)s.A[i].rateMod*=0.75}},
+ {id:'rcl', l:'Field recall sweep', cost:2300, s:'clears every latent defect already shipped',
+  fx:s=>{let n=0;for(const d of s.dots)if(d.own===0&&d.bad){d.bad=false;d.ign=0;n++}
+         log('Recall sweep: '+n+' latent defects pulled before they fired.','good')}}];
+
+/* ================= EXECUTIVE FOCUS =================
+   A hand of three. Play one, draw three more. Ask for new cards whenever you like —
+   indecision just costs you burnout. These are paid for personally, not financially:
+   burnout at 100 ends the run, and contention quietly raises defects and eats picks. */
+const EXEC=[
+ {id:'dive', l:'Deep dive on the line', s:'+0.15 output · +18 burnout, +12 contention',
+  fx:s=>{s.rte+=0.15;s.burn+=0.18;s.cont+=0.12;
+   log('You parked yourself on the floor for a month. It worked, and you trod on people.','act')}},
+ {id:'tiger',l:'Tiger team sessions', s:'+0.12 maintenance, +0.10 coverage, −18 contention · +14 burnout',
+  fx:s=>{s.mnt+=0.12;s.cov+=0.10;s.cont-=0.18;s.burn+=0.14;
+   log('Tiger teams. Everyone exhausted, nobody fighting.','act')}},
+ {id:'trav', l:'Heavy customer travel', s:'+1 planning pick · +20 burnout',
+  fx:s=>{s.genBonus+=1;s.burn+=0.20;
+   log('Forty flights. The roadmap is better and you are not.','act')}},
+ {id:'reorg',l:'Re-organise', s:'−35 contention · +20 burnout, defects up this era',
+  fx:s=>{s.cont-=0.35;s.burn+=0.20;s.reorgDef+=0.10;
+   log('Re-org announced. The politics stopped and so did the quality.','act')}},
+ {id:'vac',  l:'Take a sabbatical', s:'−30 burnout · hiring stalls, next scenarios go worse',
+  fx:s=>{s.burn-=0.30;s.unluckyUntil=s.qDone+2;s.hiringStall=true;
+   log('Two weeks away. You came back rested, to a mess.','act')}},
+ {id:'aff',  l:'Affair with a colleague', s:'−22 burnout · 35% it leaks, badly',
+  fx:s=>{s.burn-=0.22;risk(0.35,3,{cash:-2200,rep:-0.16,cont:0.30},'the affair, once it leaked');
+   log('Nobody knows. For now.','act')}},
+ {id:'aff2', l:'Affair with a rival’s executive', s:'−38 burnout · 50% they learn your roadmap, 40% it leaks',
+  fx:s=>{s.burn-=0.38;
+   risk(0.50,2,{esp:1},'pillow talk with a competitor');
+   risk(0.40,4,{cash:-2600,rep:-0.20,cont:0.26},'the affair, once it leaked');
+   log('They are very easy to talk to. That is rather the problem.','act')}},
+ {id:'cos',  l:'Hire a chief of staff', s:'−$900k · everything burns you 30% less, permanently',
+  fx:s=>{s.cash-=900;s.burnMod*=0.70;log('A chief of staff. The calendar is somebody else’s problem now.','act')}},
+ {id:'coach',l:'Executive coach', s:'−$500k · −12 burnout now and you recover faster',
+  fx:s=>{s.cash-=500;s.burn-=0.12;s.burnHeal+=0.0022;log('Thursdays at four. It is helping.','act')}},
+ {id:'fire', l:'Fire your deputy', s:'−25 contention · +15 burnout, −0.4 capability',
+  fx:s=>{s.cont-=0.25;s.burn+=0.15;s.A[0].cap[s.era]=Math.max(0,s.A[0].cap[s.era]-0.4);
+   log('He had a faction. He also knew how the process worked.','act')}},
+ {id:'allh', l:'All-hands truth session', s:'−28 contention, −6 reputation · +8 burnout',
+  fx:s=>{s.cont-=0.28;s.rep=Math.max(0,s.rep-0.06);s.burn+=0.08;
+   log('You said out loud what everyone knew. It got quiet, then better.','act')}},
+ {id:'board',l:'Charm the board', s:'+2 planning picks · +16 contention, +10 burnout',
+  fx:s=>{s.genBonus+=2;s.cont+=0.16;s.burn+=0.10;
+   log('You went around your own executives to the board. They noticed.','act')}},
+ {id:'key',  l:'Keynote the industry conference', s:'+8 reputation, +0.5 next-era capability · +12 burnout',
+  fx:s=>{s.rep=Math.min(1,s.rep+0.08);const t=Math.min(NERA-1,s.era+1);s.A[0].cap[t]+=0.5;s.burn+=0.12;
+   log('The talk landed. Three good engineers emailed you afterwards.','act')}},
+ {id:'micro',l:'Micromanage the test floor', s:'+0.18 coverage · +16 burnout, +14 contention',
+  fx:s=>{s.cov+=0.18;s.burn+=0.16;s.cont+=0.14;
+   log('Nothing ships without you seeing it. Coverage is up. Morale is not.','act')}},
+ {id:'deleg',l:'Delegate everything for a quarter', s:'−26 burnout · the plant drifts without you',
+  fx:s=>{s.burn-=0.26;
+   const d=()=>(Math.random()-0.5)*0.26;
+   s.cov+=d();s.mnt+=d();s.rte+=d();
+   log('You stepped back. Things moved. Not all of them the right way.','act')}},
+ {id:'leak', l:'Leak a rival’s slipped schedule', s:'leader −30% socket rate · 45% blowback',
+  fx:s=>{bestRival().rateMod*=0.70;
+   risk(0.45,3,{rep:-0.14,cont:0.22},'the story you planted about a rival');
+   log('A journalist got a very well-informed tip.','act')}},
+ {id:'cuffs',l:'Golden handcuffs for key staff', s:'−$1300k · rivals cannot poach this era · +14 contention',
+  fx:s=>{s.cash-=1300;s.poachProof=true;s.cont+=0.14;
+   log('The people who mattered are locked in. Everyone else did the maths.','act')}},
+ {id:'mara', l:'Train for a marathon', s:'−6 burnout now, and you recover faster for good',
+  fx:s=>{s.burn-=0.06;s.burnHeal+=0.0018;log('Five a.m. runs. Unbearable, then load-bearing.','act')}},
+ {id:'side', l:'Found a side venture', s:'+$1600k · +18 burnout, 40% conflict-of-interest scandal',
+  fx:s=>{s.cash+=1600;s.burn+=0.18;
+   risk(0.40,4,{cash:-1800,rep:-0.14,cont:0.20},'your side venture');
+   log('It is unrelated. Mostly.','act')}}];
+
+function deal(){
+  if(!S.deck||S.deck.length<3)S.deck=EXEC.map((_,i)=>i).sort(()=>Math.random()-0.5);
+  S.hand=[S.deck.pop(),S.deck.pop(),S.deck.pop()];
+  drawHand();
+}
+function redeal(){
+  if(S.phase!=='play')return;
+  S.burn=Math.min(1,S.burn+0.04);           // asking for options is itself tiring
+  S.deck.unshift(...S.hand); deal();
+}
+function playCard(i){
+  if(S.phase!=='play'||S.execPlays<=0)return;
+  const c=EXEC[S.hand[i]];
+  const before=S.burn;
+  c.fx(S);
+  S.burn=before+(S.burn-before)*(S.burn>before?S.burnMod:1);  // chief of staff softens the hits
+  clampLevers(); S.execPlays--;
+  deal(); drawActions();
+}
+function drawHand(){
+  const h=$('hand'); if(!h)return;
+  h.innerHTML=S.hand.map((ix,i)=>{const c=EXEC[ix];
+    return `<button data-act="playCard" data-arg="${i}" ${S.execPlays>0&&S.phase==='play'?'':'disabled'}>
+      <b>${c.l}</b><small>${c.s}</small></button>`}).join('');
+  $('execPlays').textContent=S.execPlays;
+  const bb=$('bBurn'), bc=$('bCont');
+  if(bb){bb.style.width=(S.burn*100)+'%';
+    bb.style.background=S.burn>.75?'var(--rd)':S.burn>.45?'var(--am)':'var(--gr)';
+    $('vBurn').textContent=Math.round(S.burn*100);
+    $('vBurn').style.color=S.burn>.75?'var(--rd)':S.burn>.45?'var(--am)':'var(--gr)';
+    bc.style.width=(S.cont*100)+'%';
+    bc.style.background=S.cont>.6?'var(--rd)':S.cont>.35?'var(--am)':'var(--gr)';
+    $('vCont').textContent=Math.round(S.cont*100);
+    $('vCont').style.color=S.cont>.6?'var(--rd)':S.cont>.35?'var(--am)':'var(--gr)';
+    $('execFx').innerHTML=`defects <b style="color:${S.cont>.35?'var(--am)':'var(--mut)'}">+${Math.round(S.cont*25)}%</b> from contention`+
+      ` · ad-hoc costs <b style="color:${S.burn>.45?'var(--am)':'var(--mut)'}">+${Math.round(S.burn*60)}%</b> from burnout`;
+  }
+}
+
+/* ================= GENERATIONAL PICKS ================= */
+const GEN=[
+ {g:'PROCESS',  id:'node', k:2, l:'Node shrink program', s:'+1.2 capability for the coming era',
+  fx:s=>{s.A[0].cap[s.capTarget]+=1.2}},
+ {g:'PROCESS',  id:'yield',k:1, l:'Standing yield task force', s:'+0.18 maintenance, permanently',
+  fx:s=>{s.baseMnt+=0.18}},
+ {g:'PROCESS',  id:'fab',  k:2, l:'Second fab line', s:'+0.25 output, permanently',
+  fx:s=>{s.baseRte+=0.25}},
+ {g:'PEOPLE',   id:'rel',  k:1, l:'Hire a reliability chief', s:'+0.15 test coverage, permanently',
+  fx:s=>{s.baseCov+=0.15}},
+ {g:'PEOPLE',   id:'grad', k:1, l:'Graduate pipeline', s:'+1 planning pick, every era after this',
+  fx:s=>{s.genBonus+=1}},
+ {g:'PEOPLE',   id:'team', k:2, l:"Poach a rival's whole team", s:'+0.8 your capability, −0.6 theirs',
+  fx:s=>{const r=bestRival(); s.A[0].cap[s.capTarget]+=0.8; r.cap[s.capTarget]=Math.max(0,r.cap[s.capTarget]-0.6)}},
+ {g:'PARTNERS', id:'fdry', k:1, l:'Foundry alliance', s:'+0.30 output, −12% revenue per unit',
+  fx:s=>{s.baseRte+=0.30; s.revMod*=0.88}},
+ {g:'PARTNERS', id:'codev',k:2, l:'Customer co-development', s:'+1.0 capability for the coming era',
+  fx:s=>{s.A[0].cap[s.capTarget]+=1.0}},
+ {g:'PARTNERS', id:'vend', k:1, l:'Equipment vendor early access', s:'+0.4 capability, ad-hoc costs −30%',
+  fx:s=>{s.A[0].cap[s.capTarget]+=0.4; s.actDisc*=0.7}},
+ {g:'CAPITAL',  id:'eq',   k:1, l:'Raise equity', s:'+$2000k now, −1 pick next era',
+  fx:s=>{s.cash+=2000; s.genBonus-=1; s.unlock.eq=true}},
+ {g:'CAPITAL',  id:'bb',   k:1, l:'Share buyback', s:'−$1200k now, +1 pick next era',
+  fx:s=>{s.cash-=1200; s.genBonus+=1}}];
+
+/* ================= SCENARIOS ================= */
+// fx may carry a `risk`: a deferred consequence, resolved a few quarters later.
+const SCEN=[
+ {t:'A key supplier raises prices 30%', d:'Your photoresist vendor has you over a barrel and knows it.',
+  o:[{l:'Absorb it', s:'<span class="cost">−$600k</span>', fx:s=>{s.cash-=600}},
+     {l:'Switch to a cheaper vendor', s:'<span class="gain">−$0</span> · <span class="cost">−0.12 maintenance</span>', fx:s=>{s.mnt-=0.12}},
+     {l:'Sign a volume commitment', s:'<span class="gain">+0.15 output</span> · <span class="risk">may bite later</span>',
+      fx:s=>{s.rte+=0.15; risk(0.55,3,{cash:-900},'the volume commitment you could not fill')}}]},
+
+ {t:'Your lead process engineer is being courted', d:'A rival opened an office eleven miles away. She has taken the call.',
+  o:[{l:'Match the offer', s:'<span class="cost">−$500k</span> · <span class="gain">+0.3 capability</span>',
+      fx:s=>{s.cash-=500; s.A[0].cap[s.era]+=0.3}},
+     {l:'Let her go', s:'<span class="cost">−0.5 capability</span>', fx:s=>{s.A[0].cap[s.era]=Math.max(0,s.A[0].cap[s.era]-0.5)}},
+     {l:'Promote her deputy', s:'<span class="cost">−0.2 capability</span> · <span class="gain">+1 planning pick</span>',
+      fx:s=>{s.A[0].cap[s.era]=Math.max(0,s.A[0].cap[s.era]-0.2); s.genBonus+=1}}]},
+
+ {t:'Analysts want a bolder roadmap', d:'Commit publicly and the money follows. So does the expectation.',
+  o:[{l:'Promise the aggressive roadmap', s:'<span class="gain">+2 planning picks</span> · <span class="risk">65% backlash</span>',
+      fx:s=>{s.genBonus+=2; risk(0.65,4,{rep:-0.12,cash:-700},'the roadmap you promised analysts')}},
+     {l:'Guide conservatively', s:'<span class="gain">+8 reputation</span>', fx:s=>{s.rep=Math.min(1,s.rep+0.08)}}]},
+
+ {t:'Pull forward next year\'s budget', d:'The board will let you spend it now. It will not be there later.',
+  o:[{l:'Take the money', s:'<span class="gain">+$1400k now</span> · <span class="risk">70% of −2 picks</span>',
+      fx:s=>{s.cash+=1400; risk(0.70,4,{gen:-2},'the budget you already spent')}},
+     {l:'Leave it alone', s:'<span class="gain">+1 planning pick</span>', fx:s=>{s.genBonus+=1}}]},
+
+ {t:'A government subsidy, with strings', d:'They will fund the line. They will also expect it to keep running.',
+  o:[{l:'Take the subsidy', s:'<span class="gain">+$1100k, +1 pick</span> · <span class="risk">50% obligation</span>',
+      fx:s=>{s.cash+=1100; s.genBonus+=1; risk(0.50,4,{cash:-1000},'subsidy obligations you could not meet')}},
+     {l:'Decline politely', s:'<span class="gain">+0.10 maintenance</span>', fx:s=>{s.mnt+=0.10}}]},
+
+ {t:'Defect scare at a competitor', d:'The whole industry is suddenly interested in test methodology.',
+  o:[{l:'Audit everything', s:'<span class="gain">+0.15 coverage</span> · <span class="cost">−0.10 output</span>',
+      fx:s=>{s.cov+=0.15; s.rte-=0.10}},
+     {l:'Say nothing, keep shipping', s:'<span class="gain">+0.12 output</span> · <span class="risk">40% backlash</span>',
+      fx:s=>{s.rte+=0.12; risk(0.40,3,{rep:-0.10},'the audit you decided to skip')}}]},
+
+ {t:'A customer offers co-development', d:'They will pay for part of the work, and own part of the result.',
+  o:[{l:'Sign it', s:'<span class="cost">−$400k</span> · <span class="gain">+0.8 next-era capability</span>',
+      fx:s=>{s.cash-=400; if(s.capTarget<NERA)s.A[0].cap[s.capTarget]+=0.8}},
+     {l:'Stay independent', s:'<span class="gain">+$300k</span>', fx:s=>{s.cash+=300}}]},
+
+ {t:'Quality incident at a major customer', d:'Three boards failed on their line. Nobody outside knows yet.',
+  o:[{l:'Full disclosure', s:'<span class="cost">−$550k</span> · <span class="gain">+10 reputation</span>',
+      fx:s=>{s.cash-=550; s.rep=Math.min(1,s.rep+0.10)}},
+     {l:'Fix it quietly', s:'<span class="gain">−$0</span> · <span class="risk">60% of a bad one</span>',
+      fx:s=>{risk(0.60,3,{rep:-0.18,cash:-900},'the incident you did not disclose')}}]},
+
+ // ---- industry-wide: these hit the rivals too ----
+ {t:'Photoresist shortage across the industry', w:1,
+  d:'One chemical plant in one town. Everybody is short, including the people you are racing.',
+  o:[{l:'Ride it out', s:'<span class="cost">everyone −20% output</span>',
+      fx:s=>{s.rte-=0.20; for(let i=1;i<s.A.length;i++)s.A[i].rateMod*=0.80}},
+     {l:'Pre-buy inventory', s:'<span class="cost">−$800k</span> · <span class="gain">only rivals suffer</span>',
+      fx:s=>{s.cash-=800; for(let i=1;i<s.A.length;i++)s.A[i].rateMod*=0.80}}]},
+
+ {t:'Demand boom', w:1, d:'Order books double across the board. Everyone who can ship, ships.',
+  o:[{l:'Run the line hot', s:'<span class="gain">+0.25 output</span> · <span class="cost">−0.10 maintenance</span>',
+      fx:s=>{s.rte+=0.25; s.mnt-=0.10}},
+     {l:'Hold quality, raise price', s:'<span class="gain">+$900k, +6 reputation</span>',
+      fx:s=>{s.cash+=900; s.rep=Math.min(1,s.rep+0.06)}}]},
+
+ {t:'A rival stumbles', w:1, d:'Word is their last node slipped two quarters. The window is open.',
+  o:[{l:'Undercut them hard', s:'<span class="cost">−$600k</span> · <span class="gain">leader −30% rate</span>',
+      fx:s=>{s.cash-=600; bestRival().rateMod*=0.70}},
+     {l:'Hire out of their layoffs', s:'<span class="gain">+0.5 capability</span> · <span class="cost">−$450k</span>',
+      fx:s=>{s.cash-=450; s.A[0].cap[s.era]+=0.5}}]}];
+
+/* ================= STATE ================= */
+let S;
+function bestRival(){let b=S.A[1];for(let i=2;i<S.A.length;i++)
+  if(S.A[i].cap[S.era]>b.cap[S.era])b=S.A[i];return b}
+function reset(){
+  S={t:0,run:false,speed:1,cash:1500,rep:1,
+     baseCov:0.70,baseMnt:0.70,baseRte:1.00,
+     cov:0.70,mnt:0.70,rte:1.00,testFast:false,revMod:1,actDisc:1,
+     era:0,eraT:0,qDone:0,phase:'play',
+     genBonus:0,genBudget:3,capTarget:0,founding:true,
+     burn:0,cont:0.10,reorgDef:0,unluckyUntil:0,
+     burnMod:1,burnHeal:0,poachProof:false,hand:[],deck:[],execPlays:2,adhocCount:0,unlock:{},usedThisEra:{},
+     pending:[],scenPool:[],
+     motes:[],flights:[],dots:[],blooms:[],log:[],
+     spawnT:0,testBusy:0,testQ:[],rivalT:0,
+     shipped:0,caught:0,escaped:0,fires:0,
+     A:ROSTER.map(r=>({...r,cap:[2,0,0,0,0],pts:0,era:[],rateMod:1}))};
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)
+    S.dots.push({c,r,x:GX+c*DX,y:GY+r*DY,own:-1,bad:false,ign:0,burn:0,age:0,
+                 seg:segOf(r),cov:0,fl:Math.random()*6.3});
+  for(let i=0;i<22;i++){const d=S.dots[(Math.random()*S.dots.length)|0];
+    if(d.own<0)d.own=1+((Math.random()*3)|0)}
+  S.log=[]; log('The Mainframe era begins. Everyone starts at '+starsPlain(2)+' reliability.','era');
+  deal(); drawLegend(); drawActions();
+}
+function log(m,cls){
+  S.log.unshift({d:ERAS[S.era].n.slice(0,4),m,cls:cls||''});
+  if(S.log.length>50)S.log.pop();
+  $('log').innerHTML=S.log.map(l=>
+    `<div class="${l.cls}"><span class="d">${l.d}</span>${l.m}</div>`).join('');
+}
+function drawLegend(){
+  $('legend').innerHTML=S.A.map(a=>`<span><i style="background:${a.c}"></i>${a.n}</span>`).join('')
+    +'<span><i style="background:#f0a73d"></i>defect</span>'
+    +'<span><i style="background:#5a2d26"></i>field failure</span>';
+}
+const fitness=a=>0.35+0.30*a.cap[S.era];
+// capability reads as five stars, filled to the nearest quarter star.
+// drawn as inline SVG rather than the glyph, which is not in every font.
+// Stars are CSS-only on purpose. Inline SVG in the DOM breaks uBlock's content
+// script (an SVG element's className is an SVGAnimatedString, not a string), which
+// wedges Orion's extension bridge and takes page interaction down with it.
+function stars(v,size){return '<b>'+(Math.round(v*4)/4).toFixed(2)+'</b>'}
+const starsPlain=stars;
+const clampLevers=()=>{S.cov=Math.max(0,Math.min(1,S.cov));
+  S.mnt=Math.max(0,Math.min(1,S.mnt)); S.rte=Math.max(0.5,Math.min(1.9,S.rte));
+  S.burn=Math.max(0,Math.min(1,S.burn)); S.cont=Math.max(0,Math.min(1,S.cont))};
+
+/* ---- deferred consequences ---- */
+function risk(p,quarters,fx,why){
+  // a tired, distracted executive is simply unluckier
+  const bump=S.qDone<S.unluckyUntil?0.20:0;
+  S.pending.push({p:Math.min(0.95,p+bump),at:S.qDone+quarters,fx,why});
+}
+function resolvePending(){
+  for(let i=S.pending.length-1;i>=0;i--){
+    const r=S.pending[i];
+    if(S.qDone<r.at)continue;
+    S.pending.splice(i,1);
+    if(Math.random()>r.p){log('No fallout from '+r.why+'. You got away with it.','good');continue}
+    if(r.fx.cash){S.cash+=r.fx.cash}
+    if(r.fx.rep){S.rep=Math.max(0,S.rep+r.fx.rep)}
+    if(r.fx.gen){S.genBonus+=r.fx.gen}
+    if(r.fx.cont){S.cont=Math.min(1,S.cont+r.fx.cont)}
+    if(r.fx.esp){const v=bestRival();
+      v.cap[S.era]=Math.min(5,v.cap[S.era]+0.5);
+      if(S.era+1<NERA)v.cap[S.era+1]=Math.min(5,v.cap[S.era+1]+0.7);
+      log('⚠ '+v.n+' is suddenly building exactly what you were going to build.','bad')}
+    const bits=[];
+    if(r.fx.cash)bits.push(fmtC(r.fx.cash));
+    if(r.fx.rep)bits.push(Math.round(r.fx.rep*100)+' rep');
+    if(r.fx.gen)bits.push(r.fx.gen+' planning picks');
+    if(r.fx.cont)bits.push('+'+Math.round(r.fx.cont*100)+' contention');
+    if(r.fx.esp)bits.push('your roadmap');
+    log('⚠ Backlash from '+r.why+': '+bits.join(', '),'bad');
+  }
+}
+
+/* ================= SIM ================= */
+function step(dt){
+  S.t+=dt; S.eraT+=dt;
+  const E=ERAS[S.era];
+  const rd=dt*(TUNE.rd/E.dur);
+  for(let i=0;i<S.A.length;i++){
+    const a=S.A[i], al=a.doc===null?0.4:a.doc;
+    const fund=i===0?0.45+0.55*Math.max(0,Math.min(1,S.cash/TUNE.cg)):1;
+    if(i>0){a.cap[S.era]=Math.min(5,a.cap[S.era]+rd*(1-al)*fund);
+            if(S.era+1<NERA)a.cap[S.era+1]=Math.min(5,a.cap[S.era+1]+rd*al*TUNE.nx*fund)}
+  }
+  S.cash-=dt*26*S.mnt;
+  S.spawnT-=dt;
+  if(S.spawnT<=0){
+    S.spawnT=0.52/S.rte;
+    const pDef=Math.min(.85,0.015+0.38*(1-S.mnt)+0.32*Math.max(0,S.rte-1)+0.25*S.cont+S.reorgDef);
+    S.motes.push({seg:0,p:0,bad:Math.random()<pDef,cov:S.cov});
+    S.cash-=3;
+  }
+  const SPD=[1/1.15,1/0.85,1/0.85];
+  for(let i=S.motes.length-1;i>=0;i--){
+    const m=S.motes[i]; if(m.hold)continue;
+    m.p+=dt*SPD[m.seg];
+    if(m.p>=1){m.p=0;
+      if(m.seg===0){m.hold=true;S.testQ.push(m)}
+      else if(m.seg===2){S.motes.splice(i,1);shipOut(m)}
+      else m.seg++;}
+  }
+  S.testBusy-=dt;
+  if(S.testBusy<=0&&S.testQ.length){
+    const m=S.testQ.shift();
+    S.testBusy=S.testFast?0.20:0.18+0.42*S.cov;
+    S.cash-=0.5+7*S.cov;
+    if(m.bad&&Math.random()<S.cov*0.95){
+      S.caught++; S.cash-=12;
+      S.blooms.push({x:NODE[1].x,y:NODE[1].y,a:1,r:4,kind:'catch'});
+      const k=S.motes.indexOf(m); if(k>=0)S.motes.splice(k,1);
+    } else {m.hold=false;m.seg=1;m.p=0; if(m.bad)S.escaped++}
+  }
+  for(let i=S.flights.length-1;i>=0;i--){
+    const f=S.flights[i]; f.p+=dt*0.95;
+    if(f.p>=1){land(f);S.flights.splice(i,1)}
+  }
+  S.rivalT-=dt;
+  if(S.rivalT<=0){
+    S.rivalT=0.34;
+    for(let i=1;i<S.A.length;i++){
+      if(Math.random()>(TUNE.rb+TUNE.rc*S.A[i].cap[S.era])*S.A[i].rateMod)continue;
+      let pool=S.dots.filter(d=>d.own<0);
+      if(!pool.length||Math.random()>0.76)
+        pool=S.dots.filter(d=>d.own>=0&&d.own!==i&&d.own!==BURN);
+      if(pool.length){const t=pool[(Math.random()*pool.length)|0];t.own=i;t.age=0}
+    }
+  }
+  for(const d of S.dots){
+    if(d.own>=0&&d.own!==BURN)d.age+=dt;
+    if(d.own===0&&d.bad&&d.ign>0&&S.t>=d.ign)ignite(d);
+    if(d.burn>0)d.burn=Math.max(0,d.burn-dt*0.22);
+  }
+  for(let i=S.blooms.length-1;i>=0;i--){
+    const b=S.blooms[i]; b.a-=dt*(b.kind==='catch'?3.2:1.1); b.r+=dt*(b.kind==='catch'?26:34);
+    if(b.a<=0)S.blooms.splice(i,1);
+  }
+  S.rep=Math.min(1,S.rep+dt*0.006);
+  // you recover slowly; the politics accrete slowly
+  // check before the decay tick, or recovery always shaves it just under the line
+  if(S.burn>=1)return finish('Burned out',
+    'You ran yourself into the ground. The board thanked you for your service.');
+  S.burn=Math.max(0,S.burn-dt*(0.0011+S.burnHeal));
+  S.cont=Math.max(0,Math.min(1,S.cont+dt*0.0016));
+
+  // quarterly planning
+  const qLen=E.dur/QPE;
+  if(S.eraT>=(S.qInEra||0)*qLen+qLen && S.qInEra<QPE-0 && S.eraT<E.dur){
+    S.qInEra=(S.qInEra||0)+1; S.qDone++;
+    resolvePending();
+    openScenario();
+    return;
+  }
+  if(S.cash<-6000)return finish('Bankrupt','You ran out of capital before the eras ran out.');
+  if(S.rep<0.2)return finish('Designed out','Your reputation collapsed. Nobody will qualify you again.');
+  if(S.eraT>=E.dur)endEra();
+}
+function shipOut(m){
+  const f=fitness(S.A[0]);
+  S.cash+=(30+30*f)*S.revMod; S.shipped++;
+  if(Math.random()>TUNE.fb+TUNE.fc*S.A[0].cap[S.era])return;
+  let pool=S.dots.filter(d=>d.own<0);
+  if(!pool.length||Math.random()>0.70){
+    const riv=S.dots.filter(d=>d.own>0&&d.own!==BURN);
+    if(riv.length&&Math.random()<S.rep*f*TUNE.cv)pool=riv;
+  }
+  if(!pool.length)pool=S.dots.filter(d=>d.own!==0&&d.own!==BURN);
+  if(!pool.length)return;
+  const tgt=pool[(Math.random()*pool.length)|0];
+  S.flights.push({x0:NODE[3].x,y0:NODE[3].y,x1:tgt.x,y1:tgt.y,p:0,bad:m.bad,cov:m.cov,tgt});
+}
+function land(f){const d=f.tgt;
+  d.own=0; d.bad=f.bad; d.cov=f.cov; d.age=0;
+  d.ign=(f.bad&&Math.random()<0.55)? S.t+16+Math.random()*30 : 0;}
+function ignite(d){
+  const info=SEGINFO[d.seg];
+  d.bad=false; d.ign=0; d.burn=1; d.own=BURN;
+  S.fires++; S.cash-=info.cost; S.rep=Math.max(0,S.rep-info.rep);
+  S.blooms.push({x:d.x,y:d.y,a:1,r:3,kind:'fire'});
+  let lost=0;
+  for(const o of S.dots)
+    if(o.own===0&&Math.abs(o.c-d.c)<=2&&Math.abs(o.r-d.r)<=2&&Math.random()<0.5){
+      o.own=1+((Math.random()*3)|0); o.age=0; lost++}
+  log(`⚠ ${d.seg}: ${info.txt}. −$${info.cost}k`+(lost?`, ${lost} sockets lost`:'')+
+      ` <span style="color:#6d7d8c">· coverage was ${Math.round(d.cov*100)}%</span>`,'fire');
+}
+
+/* ================= SCENARIOS ================= */
+function openScenario(){
+  if(!S.scenPool.length)S.scenPool=SCEN.map((_,i)=>i).sort(()=>Math.random()-0.5);
+  const sc=SCEN[S.scenPool.pop()];
+  S.phase='scen'; S.run=false;
+  $('ocard').innerHTML=`<div class="sub">Quarterly planning · ${ERAS[S.era].n} era`+
+    (sc.w?' · <span style="color:var(--rd)">industry-wide</span>':'')+`</div>
+    <h2>${sc.t}</h2><p>${sc.d}</p>
+    <div class="opts">${sc.o.map((o,i)=>
+      `<button data-act="pickScen" data-arg="${i}"><b>${o.l}</b><small>${o.s}</small></button>`).join('')}</div>`;
+  $('over').style.display='block'; $('over').scrollTop=0;
+  window.__scen=sc;
+}
+function pickScen(i){
+  const o=window.__scen.o[i];
+  o.fx(S); clampLevers();
+  log('“'+window.__scen.t+'” → '+o.l,'act');
+  $('over').style.display='none';
+  S.phase='play'; S.run=true; setPauseBtn(); drawActions();
+}
+
+/* ================= AD-HOC ================= */
+function actCost(a){return Math.round(a.cost*S.actDisc*(1+0.6*S.burn))}
+function drawActions(){
+  $('actRow').innerHTML=ADHOC.map(a=>{
+    const cost=actCost(a);
+    const used=S.usedThisEra[a.id];
+    const locked=(a.need&&!S.unlock[a.need])||(S.hiringStall&&(a.id==='poa'));
+    const can=!used&&!locked&&S.cash>=cost&&S.phase==='play';
+    return `<button ${can?'':'disabled'} class="${used?'used':''}" data-act="doAct" data-arg="${a.id}">
+      <b>${a.l}</b><span>${fmtC(-cost)}</span>
+      <small>${locked?(S.hiringStall&&a.id==='poa'?'hiring stalled by your sabbatical':'needs: raise equity'):used?'already used this era':a.s}</small></button>`;
+  }).join('');
+}
+function doAct(id){
+  const a=ADHOC.find(x=>x.id===id), cost=actCost(a);
+  if(S.usedThisEra[a.id]||S.cash<cost)return;
+  S.cash-=cost; S.usedThisEra[a.id]=true; S.adhocCount++;
+  a.fx(S); clampLevers();
+  log(a.l+' — '+fmtC(-cost),'act');
+  drawActions();
+}
+
+/* ================= ERA TRANSITIONS ================= */
+function shares(){
+  const n=S.dots.length, out=S.A.map((a,i)=>({i,a,n:0}));
+  for(const d of S.dots)if(d.own>=0&&d.own<4)out[d.own].n++;
+  out.forEach(o=>o.pc=o.n/n);
+  return out.sort((x,y)=>y.n-x.n);
+}
+const PTS=[3,2,1,0];
+function endEra(){
+  const st=shares();
+  st.forEach((o,k)=>{o.a.pts+=PTS[k]; o.a.era[S.era]=PTS[k]});
+  const k=st.findIndex(o=>o.i===0);
+  log(`${ERAS[S.era].n} era ends — you placed #${k+1} with ${Math.round(st[k].pc*100)}%, +${PTS[k]} points`,'era');
+  if(S.era>=NERA-1){S.phase='done';S.run=false;return showFinal()}
+  // budget comes from last era's placement plus how hard you worked the ad-hoc layer
+  const raw = 2 + [2,1,0,0][k] + Math.floor(S.adhocCount/3) + S.genBonus;
+  S.contPenalty = Math.round(raw*0.45*S.cont);
+  S.genBudget = Math.max(1, Math.min(7, raw - S.contPenalty));
+  S.genBonus=0;
+  S.phase='between'; S.run=false; showGen(st,k);
+}
+function beginNextEra(){
+  S.era++; S.eraT=0; S.qInEra=0; S.phase='play'; S.run=false;
+  S.usedThisEra={}; S.testFast=false; S.reorgDef=0; S.hiringStall=false;
+  S.poachProof=false; S.execPlays=2; deal();
+  S.cov=S.baseCov; S.mnt=S.baseMnt; S.rte=S.baseRte; clampLevers();
+  for(let i=1;i<S.A.length;i++)S.A[i].rateMod=1;
+  for(const d of S.dots){
+    if(d.own===BURN){d.own=-1;d.burn=0}
+    else if(d.own>=0&&Math.random()>0.45)d.own=-1;
+    d.bad=false; d.ign=0;
+  }
+  S.motes=[];S.flights=[];S.testQ=[];S.blooms=[];
+  log(`The ${ERAS[S.era].n} era begins — won on ${ERAS[S.era].cap}. You arrive at ${starsPlain(S.A[0].cap[S.era])}.`,'era');
+  $('over').style.display='none'; setPauseBtn(); drawActions(); drawHand();
+}
+
+/* ================= OVERLAYS ================= */
+function standRows(st){
+  return '<div class="stand">'+st.map((o,k)=>`<div>
+    <span class="pos">${k+1}</span><span class="nm" style="color:${o.a.c}">${o.a.n}</span>
+    <span class="pc">${Math.round(o.pc*100)}%</span>
+    <span class="pt" style="color:${PTS[k]?'var(--gr)':'var(--dim)'}">+${PTS[k]}</span></div>`).join('')+'</div>'}
+
+let GPICK=[];
+function showGen(st,place,founding){
+  try{
+  GPICK=[];
+  S.capTarget=founding?0:S.era+1;
+  const nx=founding?ERAS[0]:ERAS[S.era+1];
+  const groups=[...new Set(GEN.map(g=>g.g))];
+  $('ocard').innerHTML=`
+    ${founding?`<div class="sub">1965 · founding plan</div>
+      <h2>What kind of company is this?</h2>
+      <p style="font-size:13px">You have three picks and no history. Everything you choose
+      here is what you will be in the Mainframe era — and what you will have to unlearn later.</p>`
+    :`<div class="sub">${ERAS[S.era].n} era · final standings</div>
+    <h2>${st[0].i===0?'You won the era.':st[0].a.n+' won the era.'}</h2>
+    ${standRows(st)}
+    <div style="margin-top:11px;font-family:var(--mono);font-size:10.5px;color:var(--mut)">
+      RUNNING TOTAL — ${[...S.A].sort((a,b)=>b.pts-a.pts)
+        .map(a=>`<span style="color:${a.c}">${a.n} ${a.pts}</span>`).join(' · ')}</div>`}
+    <div class="gen">
+      <h2 style="font-size:14px;color:var(--cy);margin-bottom:3px">${founding?'FOUNDING PLAN':'GENERATIONAL PLANNING'}</h2>
+      <p style="font-size:12.5px;margin:4px 0 2px">${founding?'First up':'Next'} is the
+        <b style="color:var(--tx)">${nx.n}</b> era — won on
+        <b style="color:var(--vi)">${nx.cap}</b>.<br>You arrive at
+        ${stars(S.A[0].cap[S.capTarget])} — best rival
+        ${stars(Math.max(...S.A.slice(1).map(a=>a.cap[S.capTarget])))}.</p>
+      <div class="budget"><span>PICKS</span><b id="gBud">${S.genBudget}</b>
+        <span class="sp"></span>
+        <span style="color:var(--dim)">${founding?'you are starting from nothing'
+          :'placed #'+(place+1)+' · '+S.adhocCount+' ad-hoc'+(S.contPenalty?' · <span style="color:var(--rd)">−'+S.contPenalty+' to contention</span>':'')}</span></div>
+      ${groups.map(g=>`<div class="gengrp"><h4>${g}</h4>
+        ${GEN.filter(x=>x.g===g).map(x=>
+          `<div class="gp" id="gp_${x.id}" data-act="togglePick" data-arg="${x.id}">
+            <span class="pk">${x.k}</span>
+            <span class="gt">${x.l}<small>${x.s}</small></span></div>`).join('')}</div>`).join('')}
+    </div>
+    <button class="obtn" id="gGo" data-act="commitGen">Begin the ${nx.n} era</button>`;
+  $('over').style.display='block'; $('over').scrollTop=0;
+  updateGen();
+  }catch(err){ showErr('planning screen: '+err.message) }
+}
+function spent(){return GPICK.reduce((a,id)=>a+GEN.find(g=>g.id===id).k,0)}
+function togglePick(id){
+  const g=GEN.find(x=>x.id===id), i=GPICK.indexOf(id);
+  if(i>=0)GPICK.splice(i,1);
+  else{ if(spent()+g.k>S.genBudget)return; GPICK.push(id) }
+  updateGen();
+}
+function updateGen(){
+  const left=S.genBudget-spent();
+  $('gBud').textContent=left;
+  GEN.forEach(g=>{
+    const el=$('gp_'+g.id); if(!el)return;
+    const on=GPICK.includes(g.id);
+    el.className='gp'+(on?' on':(g.k>left?' off':''));
+  });
+}
+function commitGen(){
+  for(const id of GPICK){const g=GEN.find(x=>x.id===id); g.fx(S)}
+  if(GPICK.length)log((S.founding?'Founding plan: ':'Generational plan: ')
+    +GPICK.map(id=>GEN.find(g=>g.id===id).l).join(', '),'era');
+  if(S.founding){
+    S.founding=false;
+    S.cov=S.baseCov; S.mnt=S.baseMnt; S.rte=S.baseRte; clampLevers();
+    S.qInEra=0; S.phase='play'; S.run=false;
+    $('over').style.display='none'; setPauseBtn(); drawActions();
+    return;
+  }
+  beginNextEra();
+}
+function showFinal(){
+  const rank=[...S.A].sort((a,b)=>b.pts-a.pts), won=rank[0].n==='YOU';
+  $('ocard').innerHTML=`
+    <div class="sub">2030 · the eras are over</div>
+    <h2 style="color:${won?'var(--gr)':'var(--rd)'}">${won?'You won.':rank[0].n+' won.'}</h2>
+    <div class="stand" style="margin-top:12px">
+    ${rank.map((a,k)=>`<div><span class="pos">${k+1}</span>
+      <span class="nm" style="color:${a.c}">${a.n}</span>
+      <span class="pc" style="color:var(--dim);letter-spacing:2px">${
+        a.era.map(p=>p===3?'●':p===0?'·':'○').join('')}</span>
+      <span class="pt" style="color:var(--tx)">${a.pts}</span></div>`).join('')}</div>
+    <div style="margin-top:10px;font-family:var(--mono);font-size:9.5px;color:var(--dim)">
+      ● won the era · ○ placed · · came last</div>
+    <div style="margin-top:13px;font-family:var(--mono);font-size:11px;color:var(--mut);line-height:1.9">
+      shipped ${S.shipped} · caught ${S.caught} · escaped ${S.escaped}<br>
+      field failures ${S.fires} · ad-hoc actions ${S.adhocCount} · capital ${fmtC(S.cash)}</div>
+    <button class="obtn" data-act="hardReset">Run it again</button>`;
+  $('over').style.display='block'; $('over').scrollTop=0;
+}
+function finish(t,p){
+  S.run=false; S.phase='done';
+  $('ocard').innerHTML=`<div class="sub">Run over · ${ERAS[S.era].n} era</div>
+    <h2 style="color:var(--rd)">${t}</h2><p>${p}</p>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--mut);line-height:1.9">
+      eras survived ${S.era} of ${NERA} · points ${S.A[0].pts}<br>
+      shipped ${S.shipped} · escaped ${S.escaped} · field failures ${S.fires}</div>
+    <button class="obtn" data-act="hardReset">Run it again</button>`;
+  $('over').style.display='block'; $('over').scrollTop=0;
+}
+function showIntro(){
+  $('ocard').innerHTML=`
+    <div class="sub">How you win</div>
+    <h2>Five eras. Win the most.</h2>
+    <p>Each era goes to whoever holds the most of that era's market when it ends.
+       1st = 3 points, 2nd = 2, 3rd = 1.</p>
+    <p>You do not set the plant by hand. <b style="color:var(--tx)">Quarterly scenarios</b>
+       force a choice four times an era, <b style="color:var(--tx)">ad-hoc actions</b> spend
+       capital for an immediate effect, and <b style="color:var(--tx)">generational planning</b>
+       between eras spends a limited number of picks on what you will be good at next.</p>
+    <p><b style="color:var(--am)">Everything feeds everything:</b> capital gates your ad-hoc
+       actions, your planning picks come from last era's placement plus how hard you worked
+       the ad-hoc layer, and some scenarios hand you budget now in exchange for a backlash
+       that lands two or three quarters later.</p>
+    <div style="margin-top:12px;padding-top:11px;border-top:1px solid var(--line)">
+    ${S.A.slice(1).map(a=>`<div style="font-family:var(--mono);font-size:11px;padding:3px 0;color:var(--mut)">
+      <span style="color:${a.c}">${a.n}</span> — ${a.bio}</div>`).join('')}</div>
+    <button class="obtn" data-act="startPlay">Begin the Mainframe era</button>`;
+  $('over').style.display='block'; $('over').scrollTop=0;
+}
+function startPlay(){S.genBudget=3;showGen(null,0,true)}
+function hardReset(){reset();showIntro();setPauseBtn()}
+
+/* ================= DRAW ================= */
+function rr(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);
+  cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath()}
+function drawProduct(x,y,s,seg,empty){
+  const h=s/2;
+  if(empty){cx.fillRect(x-h,y-h,s,s);return}
+  if(seg==='CONSUMER')cx.fillRect(x-h,y-h,s,s);
+  else if(seg==='AUTOMOTIVE'){cx.fillRect(x-h,y-h*0.62,s,s*0.62);cx.fillRect(x-h*0.5,y-h,s*0.5,h*0.62)}
+  else if(seg==='DATACENTER')cx.fillRect(x-h*0.68,y-h,s*0.68,s);
+  else{cx.beginPath();cx.moveTo(x,y-h);cx.lineTo(x+h,y+h);cx.lineTo(x-h,y+h);cx.closePath();cx.fill()}
+}
+const OWNC=i=>i===0?'#49c5dd':i===1?'#e2706b':i===2?'#a98ae0':i===3?'#8d98a4':'#4a241f';
+function draw(){
+  cx.clearRect(0,0,W,H);
+  cx.fillStyle='#0c1116'; rr(10,16,380,72,8); cx.fill();
+  cx.strokeStyle='#1a222a'; cx.lineWidth=1; cx.stroke();
+  for(let i=0;i<3;i++){
+    const a=NODE[i],b=NODE[i+1];
+    const strain=i===0?Math.min(1,S.testQ.length/7):0;
+    cx.strokeStyle=strain>.6?'#e2706b':strain>.25?'#f0a73d':'#223440';
+    cx.lineWidth=3; cx.setLineDash([6,8]);
+    cx.lineDashOffset=-(S.t*(26+S.rte*20))%14;
+    cx.beginPath();cx.moveTo(a.x+NW/2,a.y);cx.lineTo(b.x-NW/2,b.y);cx.stroke();
+    cx.setLineDash([]);
+  }
+  NODE.forEach((n,i)=>{
+    let bc='#2f4654',glow=0;
+    if(i===0&&S.rte>1.15){bc='#f0a73d';glow=(Math.sin(S.t*6)+1)/2*.5}
+    if(i===1){const q=Math.min(1,S.testQ.length/7);
+      if(q>.6){bc='#e2706b';glow=(Math.sin(S.t*7)+1)/2*.6}else if(q>.25)bc='#f0a73d'}
+    if(glow){cx.shadowColor=bc;cx.shadowBlur=12*glow}
+    cx.fillStyle='#16222c'; rr(n.x-NW/2,n.y-NH/2,NW,NH,5); cx.fill();
+    cx.strokeStyle=bc;cx.lineWidth=1.4;cx.stroke();cx.shadowBlur=0;
+    cx.fillStyle='#8fa0ae';cx.font='9px ui-monospace,monospace';cx.textAlign='center';
+    cx.fillText(n.n,n.x,n.y+3.5);
+  });
+  for(let i=0;i<Math.min(S.testQ.length,14);i++){
+    cx.fillStyle=S.testQ[i].bad?'#f0a73d':'#49c5dd';
+    cx.fillRect(NODE[1].x-26+(i%7)*7.6,NODE[1].y+18+Math.floor(i/7)*7,5,5)}
+  for(const m of S.motes){
+    if(m.hold)continue;
+    const a=NODE[m.seg],b=NODE[m.seg+1];
+    const x=(a.x+NW/2)+((b.x-NW/2)-(a.x+NW/2))*m.p;
+    cx.fillStyle=m.bad?'#f0a73d':'#49c5dd';
+    if(m.bad){cx.shadowColor='#f0a73d';cx.shadowBlur=7}
+    cx.fillRect(x-2.5,a.y-2.5,5,5);cx.shadowBlur=0;
+  }
+  cx.strokeStyle='#1a222a';cx.lineWidth=1;cx.beginPath();
+  cx.moveTo(10,102);cx.lineTo(390,102);cx.stroke();
+  cx.fillStyle='#3b4852';cx.font='8px ui-monospace,monospace';cx.textAlign='left';
+  cx.fillText('THE '+ERAS[S.era].n+' MARKET',12,98);
+  cx.textAlign='right';
+  SEG.forEach(s=>{cx.fillStyle='#3a4a56';cx.fillText(s[0],392,GY+((s[1]+s[2])/2)*DY+3)});
+  for(const d of S.dots){
+    cx.fillStyle=d.own<0?'#141b21':OWNC(d.own);
+    const mat=Math.min(1,d.age/7), s=d.own<0?4:5.5+4*mat;
+    drawProduct(d.x,d.y,s,d.seg,d.own<0);
+    if(d.own===0&&d.bad){const f=.55+.45*Math.sin(S.t*3+d.fl);
+      cx.fillStyle='rgba(240,167,61,'+(0.45*f).toFixed(2)+')';cx.fillRect(d.x-2,d.y-2,4,4)}
+    if(d.burn>0){const f=Math.random()*.5+.5;
+      cx.fillStyle='rgba(226,112,107,'+(d.burn*f*.9).toFixed(2)+')';cx.fillRect(d.x-4.5,d.y-4.5,9,9)}
+  }
+  for(const f of S.flights){
+    const ex=1-Math.pow(1-f.p,2);
+    const x=f.x0+(f.x1-f.x0)*ex, y=f.y0+(f.y1-f.y0)*ex-Math.sin(f.p*Math.PI)*22;
+    cx.fillStyle=f.bad?'#f0a73d':'#49c5dd';
+    if(f.bad){cx.shadowColor='#f0a73d';cx.shadowBlur=8}
+    cx.fillRect(x-2.5,y-2.5,5,5);cx.shadowBlur=0;
+  }
+  for(const b of S.blooms){
+    cx.strokeStyle=(b.kind==='catch'?'rgba(98,201,139,':'rgba(226,112,107,')+b.a.toFixed(2)+')';
+    cx.lineWidth=b.kind==='catch'?1.6:2.2;
+    cx.beginPath();cx.arc(b.x,b.y,b.r,0,6.284);cx.stroke();
+  }
+}
+
+/* ================= READOUTS ================= */
+function derive(){
+  const spawn=S.rte/0.52;
+  const pDef=Math.min(.75,0.015+0.38*(1-S.mnt)+0.32*Math.max(0,S.rte-1));
+  const catchR=S.cov*0.95;
+  const thr=1/(S.testFast?0.20:0.18+0.42*S.cov);
+  return {spawn,pDef,catchR,thr,backing:spawn>thr,
+          escPerSec:spawn*pDef*(1-catchR),testCost:0.5+7*S.cov,mntCost:26*S.mnt};
+}
+function claimRates(){
+  const D=derive();
+  const ship=Math.min(D.spawn,D.thr)*(1-D.pDef*D.catchR);
+  const you=ship*(TUNE.fb+TUNE.fc*S.A[0].cap[S.era]);
+  const riv=S.A.slice(1).map(a=>(TUNE.rb+TUNE.rc*a.cap[S.era])*a.rateMod/0.34);
+  return {you,riv,ship,D};
+}
+function updateReadouts(){
+  const D=derive();
+  $('vCov').textContent=Math.round(S.cov*100)+'%';
+  $('vMnt').textContent=Math.round(S.mnt*100)+'%';
+  $('vRte').textContent=S.rte.toFixed(2)+'×';
+  $('gCov').style.width=(S.cov*100)+'%';
+  $('gMnt').style.width=(S.mnt*100)+'%';
+  $('gRte').style.width=((S.rte-0.5)/1.4*100)+'%';
+  $('dCov').innerHTML=`catches <b style="color:var(--cy)">${Math.round(D.catchR*100)}%</b> of defects · `+
+    (D.backing?'<b style="color:var(--rd)">LINE BACKING UP</b>':'line keeps up');
+  $('dMnt').innerHTML=`<b style="color:${D.pDef>.3?'var(--rd)':D.pDef>.15?'var(--am)':'var(--gr)'}">`+
+    `${Math.round(D.pDef*100)}%</b> of units born defective · $${Math.round(D.mntCost)}/sec`;
+  $('dRte').innerHTML=`<b style="color:var(--am)">${D.spawn.toFixed(1)}</b> units/sec`+
+    (S.rte>1?` · <b style="color:var(--rd)">+${Math.round(0.32*(S.rte-1)*100)}%</b> defect rate`:'');
+  const st=[
+    ['#f0a73d',D.spawn.toFixed(1),'starting','units / sec'],
+    [D.pDef>.3?'#e2706b':D.pDef>.15?'#f0a73d':'#62c98c',Math.round(D.pDef*100)+'%','born bad','maintenance'],
+    ['#49c5dd',Math.round(D.catchR*100)+'%','caught','coverage'],
+    [D.escPerSec>.25?'#e2706b':D.escPerSec>.08?'#f0a73d':'#62c98c',D.escPerSec.toFixed(2),'escaping /s','into the world'],
+    [S.fires?'#e2706b':'#62c98c',S.fires,'field failures','so far']];
+  $('chain').innerHTML=st.map((x,i)=>
+    `<div class="st"><b style="color:${x[0]}">${x[1]}</b><span>${x[2]}</span><em>${x[3]}</em></div>`
+    +(i<st.length-1?'<div class="ar">›</div>':'')).join('');
+  $('field').innerHTML=SEG.map(sg=>{
+    const name=sg[0], per=UNITS[name];
+    let mine=0,tot=0,latent=0,own=[0,0,0,0];
+    for(const d of S.dots){
+      if(d.r<sg[1]||d.r>sg[2]||d.own<0||d.own===BURN)continue;
+      const m=Math.min(1,d.age/7); tot+=m; own[d.own]+=m;
+      if(d.own===0){mine+=m*per; if(d.bad)latent+=m*per}
+    }
+    const bars=own.map((v,i)=>v>0?`<i style="width:${(v/(tot||1)*100).toFixed(1)}%;background:${OWNC(i)}"></i>`:'').join('');
+    return `<div><div class="fn">${name.split(' ')[0]}</div><div class="fu">${fmtU(mine)}</div>
+      <div class="fb">${bars}</div>
+      <div class="fr" style="color:${latent>0?'var(--am)':'var(--dim)'}">${
+        latent>0?'⚠ '+fmtU(latent)+' at risk':'clean'}</div></div>`;
+  }).join('');
+}
+function hud(){
+  const E=ERAS[S.era];
+  $('eName').textContent=E.n; $('eYears').textContent=E.y;
+  $('eWins').textContent='wins on '+E.cap;
+  $('eTrack').style.width=Math.min(100,S.eraT/E.dur*100)+'%';
+  const c=$('hCash'); c.textContent=fmtC(S.cash);
+  c.style.color=S.cash<0?'var(--rd)':'var(--gr)';
+  const me=shares().find(o=>o.i===0);
+  $('hShare').textContent=Math.round(me.pc*100)+'%';
+  $('bShare').style.width=(me.pc*100)+'%';
+  $('hRep').textContent=Math.round(S.rep*100);
+  const br=$('bRep'); br.style.width=(S.rep*100)+'%';
+  br.style.background=S.rep<.4?'var(--rd)':S.rep<.7?'var(--am)':'var(--gr)';
+  updateReadouts(); drawHand();
+  const R=claimRates(), bestR=Math.max(...R.riv), bi=R.riv.indexOf(bestR)+1;
+  $('hFit').textContent=R.you.toFixed(2);
+  $('hFit').style.color=R.you>=bestR?'var(--gr)':'var(--rd)';
+  $('bFit').style.width=Math.min(100,R.you/Math.max(bestR,R.you,0.01)*100)+'%';
+  $('bFit').style.background=R.you>=bestR?'var(--gr)':'var(--rd)';
+  $('hFitSub').textContent='best rival '+bestR.toFixed(2);
+  const myCap=S.A[0].cap[S.era], bestCap=Math.max(...S.A.slice(1).map(a=>a.cap[S.era]));
+  $('why').innerHTML = R.you>=bestR
+    ? `You are taking sockets faster than anyone. <b>${R.ship.toFixed(1)}/s</b> off the line × ${stars(myCap)}.`
+    : myCap>=bestCap
+      ? `You are ${stars(myCap)} against ${S.A[bi].n}'s ${stars(S.A[bi].cap[S.era])} — <b style="color:var(--am)">your plant is the limit, not your R&amp;D.</b>`
+      : `${S.A[bi].n} is ahead on both: ${stars(S.A[bi].cap[S.era])} against your ${stars(myCap)}, and <b>${bestR.toFixed(2)}</b> sockets/sec vs <b>${R.you.toFixed(2)}</b>.`;
+  $('score').innerHTML=S.A.map(a=>`<div><span style="color:${a.c}">${a.n}</span>
+    <b style="color:${a.c}">${a.pts}</b>
+    <em>${(a===S.A[0]?R.you:R.riv[S.A.indexOf(a)-1]).toFixed(2)}/s</em>
+    <em>${stars(a.cap[S.era],9)}</em></div>`).join('');
+}
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000); last=now;
+  try{
+    if(S.run&&S.phase==='play')for(let i=0;i<S.speed&&S.run&&S.phase==='play';i++)step(dt);
+    draw(); hud();
+  }catch(err){ showErr('frame: '+err.message) }
+  requestAnimationFrame(frame);          // never let one bad frame stop the loop
+}
+
+/* ================= CONTROLS ================= */
+function setPauseBtn(){const b=$('bPause');
+  b.textContent=S.run?'❚❚ Pause':'▶ Run'; b.classList.toggle('go',!S.run)}
+$('bPause').onclick=()=>{if(S.phase!=='play')return;S.run=!S.run;setPauseBtn();drawActions()};
+function spd(v,el){S.speed=v;['b1','b3'].forEach(id=>$(id).classList.toggle('on',id===el))}
+$('b1').onclick=()=>spd(1,'b1'); $('b3').onclick=()=>spd(3,'b3');
+$('bReset').onclick=hardReset;
+
+// one delegated listener: inline handlers can be blocked by an extension or CSP
+const ACTS={startPlay,commitGen,togglePick,pickScen,playCard,doAct,redeal,hardReset};
+document.addEventListener('click',e=>{
+  const el=e.target&&e.target.closest?e.target.closest('[data-act]'):null;
+  if(!el)return;
+  const fn=ACTS[el.getAttribute('data-act')]; if(!fn)return;
+  const raw=el.getAttribute('data-arg');
+  try{ fn(raw===null?undefined:(raw!==''&&!isNaN(+raw)?+raw:raw)) }
+  catch(err){ showErr('click '+el.getAttribute('data-act')+': '+err.message) }
+});
+fit(); reset(); showIntro(); setPauseBtn(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
