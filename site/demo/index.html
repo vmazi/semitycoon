@@ -4,16 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Kill Your Own Semiconductor Company Simulator</title>
-<meta name="description" content="Run a chip company for forty years. A fab takes four years to build, so every decision pays off long after the world that justified it is gone. Most people kill the company. Five eras, four rivals, one of them yours — for now.">
+<meta name="description" content="Run a chip company for forty years. A fab takes four years to build, so every decision pays off long after the world that justified it is gone. Most people kill the company. Six eras, four rivals, one of them yours — for now.">
 <meta name="theme-color" content="#0a0c0f">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Kill Your Own Semiconductor Company Simulator">
 <meta property="og:title" content="Kill Your Own Semiconductor Company Simulator">
-<meta property="og:description" content="Run a chip company for forty years. A fab takes four years to build, so every decision pays off long after the world that justified it is gone. Most people kill the company. Five eras, four rivals, one of them yours — for now.">
+<meta property="og:description" content="Run a chip company for forty years. A fab takes four years to build, so every decision pays off long after the world that justified it is gone. Most people kill the company. Six eras, four rivals, one of them yours — for now.">
 <meta property="og:url" content="https://semitycoon.borgorg.org/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Kill Your Own Semiconductor Company Simulator">
-<meta name="twitter:description" content="Run a chip company for forty years. A fab takes four years to build, so every decision pays off long after the world that justified it is gone. Most people kill the company. Five eras, four rivals, one of them yours — for now.">
+<meta name="twitter:description" content="Run a chip company for forty years. A fab takes four years to build, so every decision pays off long after the world that justified it is gone. Most people kill the company. Six eras, four rivals, one of them yours — for now.">
 <!-- pwa:start -->
 <link rel="icon" href="/icons/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/icons/favicon.png">
@@ -243,6 +243,8 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
   background:var(--cy);color:#06181d;font-weight:700;cursor:pointer;
   box-shadow:0 -10px 18px rgba(18,22,27,.95)}
 .obtn:disabled{opacity:.4}
+.obtn.ghost{position:static;background:transparent;color:var(--mut);font-weight:400;
+  border:1px solid var(--line);box-shadow:none;margin-top:8px;font-size:12px}
 .hint{margin-top:11px;font-size:13px;color:var(--mut);line-height:1.6}
 .hint b{color:var(--am)}
 
@@ -289,7 +291,7 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 <div class="top">
   <a href="../design/">design</a><a href="../mockups/">mockups</a><a href="../about/">about</a>
   <div class="sp"></div><h1>KILL YOUR OWN<br>SEMICONDUCTOR COMPANY<br>SIMULATOR
-    <span style="color:var(--am);font-size:9px">b27</span></h1>
+    <span style="color:var(--am);font-size:9px">b28</span></h1>
 </div>
 
 <div class="wrap">
@@ -374,7 +376,7 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 
   <div class="log" id="log"></div>
 
-  <p class="hint"><b>How you win:</b> five eras, most eras won takes it. Quarterly scenarios
+  <p class="hint"><b>How you win:</b> six eras, most eras won takes it. Quarterly scenarios
   and ad-hoc spending run the plant; the generational planning between eras decides which
   era you are actually built for.</p>
 </div>
@@ -410,9 +412,12 @@ const ERAS=[
   d:'Everything has to talk to everything. The win is putting more functions on one die.'},
  {n:'MOBILE',     y:'2005–2015', cap:'POWER EFFICIENCY', dur:46,
   d:'It runs on a battery in a pocket. Performance per watt is the only number anyone reads.'},
- {n:'CLOUD / AI', y:'2015–2030', cap:'PACKAGING / SCALE',dur:46,
-  d:'Dies too big to yield, stacked and stitched together. Packaging is the whole game.'}];
+ {n:'CLOUD',      y:'2015–2022', cap:'PACKAGING / SCALE',dur:44,
+  d:'Dies too big to yield, stacked and stitched together. Packaging is the whole game.'},
+ {n:'AI',         y:'2022–2035', cap:'MEMORY BANDWIDTH',dur:44,
+  d:'The compute is easy and starved. Whoever can feed the die fast enough owns the era.'}];
 const NERA=ERAS.length, QPE=4;                      // quarters per era
+const BUILD='b28';
 
 /* ================= WORLD ================= */
 const COLS=20,ROWS=15,DX=16.4,DY=16.4,GX=16,GY=128;
@@ -426,11 +431,21 @@ function segOf(r){for(const s of SEG)if(r>=s[1]&&r<=s[2])return s[0];return 'CON
 const UNITS={CONSUMER:180,AUTOMOTIVE:40,DATACENTER:12,'GRID / INDUSTRIAL':25};
 // value per socket: volume and margin pull in opposite directions
 const SEGVAL={CONSUMER:1.0,AUTOMOTIVE:2.6,DATACENTER:3.4,'GRID / INDUSTRIAL':2.0};
+
+// What a socket is worth depends on who is buying that era. Only the AI era
+// bends it, and hard: training demand will pay almost anything for a datacentre
+// part and very little for a commodity consumer one. Every other era is left
+// flat on purpose -- this is one knob for one era, not a per-era economy.
+const SEGERA={AI:{CONSUMER:0.6,DATACENTER:1.9}};
+function segVal(seg){
+  const m=SEGERA[ERAS[S.era].n];
+  return SEGVAL[seg]*((m&&m[seg])||1);
+}
 function marketCaps(){
   const out=S.A.map((a,i)=>({i,a,hold:0}));
   for(const d of S.dots){
     if(d.own<0||d.own>=4)continue;
-    out[d.own].hold+=SEGVAL[d.seg]*Math.min(1,d.age/7);
+    out[d.own].hold+=segVal(d.seg)*Math.min(1,d.age/7);
   }
   out.forEach(o=>{
     const rep=o.i===0?S.rep:0.9;
@@ -551,7 +566,7 @@ function playCard(i){
   if((S.phase!=='play'&&S.phase!=='exec')||S.execPlays<=0)return;
   const c=EXEC[S.hand[i]];
   const before=S.burn;
-  c.fx(S);
+  c.fx(S); jot('exec',c.id,c.l);
   S.burn=before+(S.burn-before)*(S.burn>before?S.burnMod:1);  // chief of staff softens the hits
   clampLevers(); S.execPlays--;
   deal(); drawActions();
@@ -745,12 +760,13 @@ function reset(){
      genBonus:0,genBudget:3,capTarget:0,founding:true,
      burn:0,cont:0.10,reorgDef:0,unluckyUntil:0,
      burnMod:1,burnHeal:0,poachProof:false,hand:[],deck:[],execPlays:2,adhocCount:0,unlock:{},usedThisEra:{},
-     pending:[],scenPool:[],qQueue:[],qTotal:0,
+     pending:[],scenPool:[],qQueue:[],qTotal:0,journal:[],
      motes:[],flights:[],dots:[],blooms:[],log:[],
      spawnT:0,testBusy:0,testQ:[],rivalT:0,
      shipped:0,caught:0,escaped:0,fires:0,
      eraFires:0,eraLost:0,eraShipped:0,eraCaught:0,eraEscaped:0,
-     A:ROSTER.map(r=>({...r,cap:[2.5,0,0,0,0],pts:0,era:[],rateMod:1}))};
+     A:ROSTER.map(r=>({...r,cap:Array.from({length:NERA},(_,i)=>i===0?2.5:0),
+                       pts:0,era:[],rateMod:1}))};
   for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)
     S.dots.push({c,r,x:GX+c*DX,y:GY+r*DY,own:-1,bad:false,ign:0,burn:0,age:0,
                  seg:segOf(r),cov:0,fl:Math.random()*6.3});
@@ -833,7 +849,7 @@ function step(dt){
   }
   // the installed base earns according to what it is worth, not how clever you are
   let hv=0;
-  for(const d of S.dots)if(d.own===0)hv+=SEGVAL[d.seg]*Math.min(1,d.age/7);
+  for(const d of S.dots)if(d.own===0)hv+=segVal(d.seg)*Math.min(1,d.age/7);
   S.cash+=dt*hv*TUNE.holdRev*S.revMod;
   S.cash-=dt*26*S.mnt;
   S.spawnT-=dt;
@@ -968,6 +984,7 @@ function openScenario(){
 function pickScen(i){
   const o=window.__scen.o[i];
   o.fx(S); clampLevers();
+  jot('scen',window.__scen.t,o.l);
   log('“'+window.__scen.t+'” → '+o.l,'act');
   if(S.qQueue&&S.qQueue.length){openScenario();return}
   $('over').style.display='none';
@@ -992,6 +1009,7 @@ function doAct(id){
   if(S.usedThisEra[a.id]||S.cash<cost)return;
   S.cash-=cost; S.usedThisEra[a.id]=true; S.adhocCount++;
   a.fx(S); clampLevers();
+  jot('adhoc',a.id,a.l);
   log(a.l+' — '+fmtC(-cost),'act');
   drawActions();
 }
@@ -1004,17 +1022,79 @@ function shares(){
   let tot=0;
   for(const d of S.dots){
     if(d.own<0||d.own>=4)continue;
-    const v=SEGVAL[d.seg]*Math.min(1,d.age/7);
+    const v=segVal(d.seg)*Math.min(1,d.age/7);
     out[d.own].n+=v; out[d.own].raw++; tot+=v;
   }
   out.forEach(o=>o.pc=tot>0?o.n/tot:0);
   return out.sort((x,y)=>y.n-x.n);
 }
 const PTS=[3,2,1,0];
+
+/* ================= TELEMETRY ================= */
+// Balance data, posted once per era and once per run. Entirely fire-and-forget:
+// a dead or slow sink must never be visible from inside the game, so every send
+// is wrapped and every failure swallowed.
+const TEL={
+  on:true, key:null, source:'human', policy:null,
+  run:(function(){
+    try{
+      let id=sessionStorage.getItem('st_run');
+      if(!id){id=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36));
+              sessionStorage.setItem('st_run',id)}
+      return id;
+    }catch(e){ return String(Math.random()).slice(2) }
+  })(),
+  newRun(){ this.run=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36));
+            try{sessionStorage.setItem('st_run',this.run)}catch(e){} },
+  send(ev){
+    if(!this.on)return;
+    ev.game='semitycoon'; ev.run_id=this.run; ev.build=BUILD;
+    ev.source=this.source; if(this.policy)ev.policy=this.policy;
+    try{
+      const body=JSON.stringify(ev);
+      // A plain beacon cannot carry the harness key, so only fall back to it
+      // when there is no key to send.
+      if(!this.key&&navigator.sendBeacon){
+        navigator.sendBeacon('/api/ingest',new Blob([body],{type:'application/json'}));
+        return;
+      }
+      const h={'Content-Type':'application/json'};
+      if(this.key)h['X-ST-Key']=this.key;
+      fetch('/api/ingest',{method:'POST',headers:h,body,keepalive:true}).catch(()=>{});
+    }catch(e){}
+  }
+};
+// What was actually chosen, so a result can be traced back to the decisions
+// that produced it rather than just scored.
+function jot(kind,id,label){
+  if(!S.journal)S.journal=[];
+  if(S.journal.length<400)S.journal.push({e:S.era,q:S.qInEra|0,k:kind,id,l:label});
+}
+function eraSnapshot(st,k){
+  const me=st.find(o=>o.i===0), R=claimRates(), mc=marketCaps();
+  const mine=mc.find(o=>o.i===0);
+  return {
+    era:S.era, era_name:ERAS[S.era].n, placement:k+1, points:PTS[k],
+    share:+me.pc.toFixed(4), sockets:me.raw,
+    cap_stars:+S.A[0].cap[S.era].toFixed(2),
+    capital:Math.round(S.cash), market_cap:+mine.cap.toFixed(2),
+    reputation:+S.rep.toFixed(3), burnout:+S.burn.toFixed(3), contention:+S.cont.toFixed(3),
+    rate_you:+R.you.toFixed(3), rate_best_rival:+Math.max(...R.riv).toFixed(3),
+    shipped:S.eraShipped, caught:S.eraCaught, escaped:S.eraEscaped,
+    fires:S.eraFires, sockets_lost:S.eraLost,
+    adhoc_count:S.adhocCount, gen_budget:S.genBudget,
+    levers:{cov:+S.cov.toFixed(3),mnt:+S.mnt.toFixed(3),rte:+S.rte.toFixed(3)},
+    rivals:st.filter(o=>o.i!==0).map(o=>({
+      n:o.a.n, share:+o.pc.toFixed(4), sockets:o.raw, cap:+o.a.cap[S.era].toFixed(2)})),
+    choices:(S.journal||[]).filter(j=>j.e===S.era)
+  };
+}
+
 function endEra(){
   const st=shares();
   st.forEach((o,k)=>{o.a.pts+=PTS[k]; o.a.era[S.era]=PTS[k]});
   const k=st.findIndex(o=>o.i===0);
+  TEL.send(Object.assign({kind:'era'},eraSnapshot(st,k)));
   log(`${ERAS[S.era].n} era ends — you placed #${k+1} with ${Math.round(st[k].pc*100)}% of the market <span style="color:#6d7d8c">by value</span> (${st[k].raw} sockets), +${PTS[k]} points`,'era');
   if(S.era>=NERA-1){S.phase='done';S.run=false;return showFinal()}
   // budget comes from last era's placement plus how hard you worked the ad-hoc layer
@@ -1118,6 +1198,10 @@ function standRows(st){
 let GPICK=[];
 function showGen(st,place,founding){
   try{
+  // This screen blocks play, so it owns the phase. The founding call came in
+  // from startPlay with the phase still reading 'play', which left the clock
+  // eligible to tick behind the overlay and end the era a second time.
+  S.phase='between'; S.run=false;
   GPICK=[];
   S.capTarget=founding?0:S.era+1;
   const nx=founding?ERAS[0]:ERAS[S.era+1];
@@ -1174,7 +1258,7 @@ function updateGen(){
   });
 }
 function commitGen(){
-  for(const id of GPICK){const g=GEN.find(x=>x.id===id); g.fx(S)}
+  for(const id of GPICK){const g=GEN.find(x=>x.id===id); g.fx(S); jot(S.founding?'found':'gen',id,g.l)}
   if(GPICK.length)log((S.founding?'Founding plan: ':'Generational plan: ')
     +GPICK.map(id=>GEN.find(g=>g.id===id).l).join(', '),'era');
   if(S.founding){
@@ -1189,8 +1273,16 @@ function commitGen(){
 }
 function showFinal(){
   const rank=[...S.A].sort((a,b)=>b.pts-a.pts), won=rank[0].n==='YOU';
+  const st=shares(), k=st.findIndex(o=>o.i===0);
+  TEL.send(Object.assign({kind:'final'},eraSnapshot(st,k),{
+    placement:rank.findIndex(a=>a.n==='YOU')+1,
+    points:S.A[0].pts, won,
+    era_points:S.A[0].era.slice(),
+    standings:rank.map(a=>({n:a.n,pts:a.pts,eras:a.era.slice()})),
+    choices:S.journal||[]
+  }));
   $('ocard').innerHTML=`
-    <div class="sub">2030 · the eras are over</div>
+    <div class="sub">2035 · the eras are over</div>
     <h2 style="color:${won?'var(--gr)':'var(--rd)'}">${won?'You won.':rank[0].n+' won.'}</h2>
     <div class="stand" style="margin-top:12px">
     ${rank.map((a,k)=>`<div><span class="pos">${k+1}</span>
@@ -1228,7 +1320,7 @@ function showIntro(){
   $('ocard').innerHTML=`
     <div class="sub">Kill your own semiconductor company simulator</div>
     <h2>Most people kill the company.</h2>
-    <p>Five eras, four rivals, one of them yours — for now. Each era goes to whoever holds
+    <p>Six eras, four rivals, one of them yours — for now. Each era goes to whoever holds
        the most of that era's market when it ends. 1st = 3 points, 2nd = 2, 3rd = 1.</p>
     <p>You do not set the plant by hand. <b style="color:var(--tx)">Quarterly scenarios</b>
        force a choice four times an era, <b style="color:var(--tx)">ad-hoc actions</b> spend
@@ -1241,13 +1333,21 @@ function showIntro(){
     <div style="margin-top:12px;padding-top:11px;border-top:1px solid var(--line)">
     ${S.A.slice(1).map(a=>`<div style="font-family:var(--mono);font-size:11px;padding:3px 0;color:var(--mut)">
       <span style="color:${a.c}">${a.n}</span> — ${a.bio}</div>`).join('')}</div>
-    <button class="obtn" data-act="startPlay">Begin the Mainframe era</button>`;
+    <button class="obtn" data-act="startTut">Show me how it works first</button>
+    <button class="obtn ghost" data-act="startPlay">Skip the tutorial — begin the Mainframe era</button>`;
   $('over').style.display='block'; $('over').scrollTop=0;
+}
+// The tutorial is offered as a button on the intro rather than fired
+// automatically the first time. Keying it off localStorage meant it appeared
+// exactly once ever and then vanished with no visible way back to it.
+function startTut(){
+  S.genBudget=3;
+  $('over').style.display='none';
+  S.pendingFounding=true;
+  tutStart();
 }
 function startPlay(){
   S.genBudget=3;
-  let seen=false; try{seen=localStorage.getItem('st_tut')==='1'}catch(e){}
-  if(!seen){ $('over').style.display='none'; tutStart(); S.pendingFounding=true; return }
   showGen(null,0,true);
 }
 function hardReset(){reset();showIntro();setPauseBtn()}
@@ -1420,7 +1520,7 @@ function hud(){
   for(const d of S.dots){
     if(d.own!==0)continue;
     const m=Math.min(1,d.age/7);
-    mix[d.seg]+=SEGVAL[d.seg]*m; mySock+=m; myVal+=SEGVAL[d.seg]*m;
+    mix[d.seg]+=segVal(d.seg)*m; mySock+=m; myVal+=segVal(d.seg)*m;
   }
   const totMix=Object.values(mix).reduce((a,b)=>a+b,0);
   let mAcc=0, mSegs=[];
@@ -1470,8 +1570,8 @@ function frame(now){
    Spotlights a real element and explains it. Updates only on step change,
    never per frame. */
 const TUT=[
- {t:null, n:'How you win', h:'Five eras. Win the most.',
-  p:'Mainframe, PC, networking, mobile, cloud. Each era goes to whoever holds the most of <b>that era\'s market</b> when it ends. 1st = 3 points, 2nd = 2, 3rd = 1. Most points after five eras wins.'},
+ {t:null, n:'How you win', h:'Six eras. Win the most.',
+  p:'Mainframe, PC, networking, mobile, cloud, AI. Each era goes to whoever holds the most of <b>that era\'s market</b> when it ends. 1st = 3 points, 2nd = 2, 3rd = 1. Most points after six eras wins.'},
  {t:'.erabar', n:'Step 1', h:'The era you are in',
   p:'The era name, the years, and <b>what this era is won on</b> — Mainframe rewards reliability, PC rewards cost and volume. The bar is time remaining, and the ticks are the four quarterly planning points.'},
  {t:'.score', n:'Step 2', h:'You and three rivals',
@@ -1537,7 +1637,7 @@ $('b1').onclick=()=>spd(1,'b1'); $('b3').onclick=()=>spd(3,'b3');
 $('bReset').onclick=hardReset;
 
 // one delegated listener: inline handlers can be blocked by an extension or CSP
-const ACTS={startPlay,commitGen,togglePick,pickScen,playCard,doAct,redeal,hardReset,
+const ACTS={startPlay,startTut,commitGen,togglePick,pickScen,playCard,doAct,redeal,hardReset,
             tutStart,tutNext,tutBack,tutSkip,execPick,execRedeal,execClose};
 document.addEventListener('click',e=>{
   const el=e.target&&e.target.closest?e.target.closest('[data-act]'):null;

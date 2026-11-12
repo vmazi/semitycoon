@@ -52,8 +52,12 @@ def social_card(art: Image.Image, out: Path) -> None:
     card = Image.new("RGB", (W, H), BG)
 
     # Art bleeds off the left edge and fades into the background, so the panel
-    # seam never reads as a hard rectangle against the dark card.
-    a = square(art).resize((H, H), Image.LANCZOS)
+    # seam never reads as a hard rectangle against the dark card. The crop is
+    # tightened and pulled upward because these scenes put the subject above
+    # centre and leave dead ground along the bottom.
+    s = art.crop((int(art.width * 0.10), int(art.height * 0.04),
+                  int(art.width * 0.90), int(art.height * 0.84)))
+    a = s.resize((H, H), Image.LANCZOS)
     card.paste(a, (0, 0))
     fade = Image.new("L", (H, H), 255)
     fd = ImageDraw.Draw(fade)
@@ -68,7 +72,7 @@ def social_card(art: Image.Image, out: Path) -> None:
     d.text((x, 262), "COMPANY", font=font(46), fill=(199, 210, 220))
     d.text((x, 318), "SIMULATOR", font=font(46), fill=CYAN)
     d.line([(x, 396), (x + 400, 396)], fill=(35, 43, 52), width=2)
-    d.text((x, 420), "Forty years. Five eras.", font=font(21), fill=MUT)
+    d.text((x, 420), "Forty years. Six eras.", font=font(21), fill=MUT)
     d.text((x, 452), "Most people kill the company.", font=font(21), fill=MUT)
     d.text((x, 520), "semitycoon.borgorg.org", font=font(19), fill=(240, 167, 61))
     card.save(out, optimize=True)
@@ -76,7 +80,10 @@ def social_card(art: Image.Image, out: Path) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("source")
+    ap.add_argument("source", help="art for the app icon; must survive 48px")
+    # The icon and the card are different jobs. An icon needs a silhouette that
+    # holds at 48px; the card has room for a scene that tells the joke.
+    ap.add_argument("--og", help="separate art for the social card (default: source)")
     ap.add_argument("--out", default=str(ROOT / "site" / "icons"))
     args = ap.parse_args()
 
@@ -97,7 +104,8 @@ def main() -> None:
     art.resize((32, 32), Image.LANCZOS).save(out / "favicon.png", optimize=True)
     art.resize((64, 64), Image.LANCZOS).save(
         out / "favicon.ico", sizes=[(16, 16), (32, 32), (48, 48)])
-    social_card(art, out / "og.png")
+    card_art = square(Image.open(args.og).convert("RGB")) if args.og else art
+    social_card(card_art, out / "og.png")
     print(f"wrote {len(list(out.iterdir()))} files to {out}")
 
 

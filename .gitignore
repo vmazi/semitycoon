@@ -1,2 +1,4 @@
 dns-backups/
 *.log
+deploy/.env
+deploy/data/

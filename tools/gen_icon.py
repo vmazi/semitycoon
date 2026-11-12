@@ -31,7 +31,84 @@ PALETTE = (
     "ember amber #f0a73d. High contrast, no other hues."
 )
 
+RCT = (
+    "RollerCoaster Tycoon style: a chunky stylised isometric 3D diorama, charming "
+    "and toy-like, soft rounded shapes, bright readable silhouette, viewed from "
+    "above at 45 degrees, centred with generous dark margin around it."
+)
+
+TOY = (
+    "Chunky stylised 3D game-icon art, bold clean cartoon shapes, glossy and "
+    "appetising, soft studio lighting, strong readable silhouette, centred on a "
+    "near-black background with generous dark margin. Not photorealistic."
+)
+
+FLAT = (
+    "Flat vector app-icon design: bold simple shapes, thick clean outlines, a "
+    "handful of flat colours with no gradients or photographic texture, perfectly "
+    "centred, generous margin, dark background. Looks like a mobile game icon."
+)
+
 CONCEPTS = {
+    # Same pun, drawn as a flat app icon rather than a rendered object.
+    "flatcrisp": (
+        "A single wavy golden potato crisp, drawn as a flat vector icon, with "
+        "simple cyan circuit-trace lines and a few square contact pads printed "
+        "across it. " + FLAT
+    ),
+    "flatdip": (
+        "A golden potato crisp with a row of short black chip pins down each side "
+        "like an integrated circuit, drawn as a flat vector icon, cyan circuit "
+        "lines across the crisp. " + FLAT
+    ),
+    # A potato crisp that is also a silicon chip. A visual pun survives being
+    # shrunk to 48px in a way a street scene does not.
+    "crisp": (
+        "A single golden wavy potato crisp floating straight on, but its surface "
+        "is a microchip: fine circuit traces etched across it glowing cyan, tiny "
+        "gold contact pads running along its rippled edge. " + TOY
+    ),
+    "dip": (
+        "A golden potato crisp sitting like an integrated circuit: a row of little "
+        "black metal pins runs down each side of the crisp as though it were a "
+        "chip package, with faint cyan circuitry printed on the crisp itself. "
+        "Funny, clean, iconic. " + TOY
+    ),
+    "bite": (
+        "A big glossy golden potato crisp with one bite taken out of it, and the "
+        "bitten edge reveals silicon: a cross-section of glowing cyan microchip "
+        "circuitry and tiny gold wiring inside the crisp. " + TOY
+    ),
+    "bag": (
+        "A small foil snack bag tipped over, spilling out golden potato crisps "
+        "that are also silicon chips, each etched with glowing cyan circuitry, "
+        "scattered across a dark surface. " + TOY
+    ),
+    # The brief: RollerCoaster Tycoon, but a hungover broke executive who has
+    # woken up in downtown Shenzhen. Warm and funny rather than grim.
+    "kerb": (
+        "A hungover, broke semiconductor executive sits slumped on the kerb at "
+        "night in downtown Shenzhen. Creased grey suit, tie loosened, sunglasses "
+        "on, clutching a paper coffee cup, a toppled briefcase beside him spilling "
+        "silicon wafers across the pavement. Behind him the electronics district "
+        "glows: neon shop signs, LED billboards, parked scooters. One warm amber "
+        "streetlamp overhead against cool cyan neon and a black sky. " + RCT
+    ),
+    "block": (
+        "A tiny Shenzhen electronics district built as a glowing toy city block at "
+        "night: stacked chip-market towers, neon signage, LED billboards, market "
+        "stalls heaped with circuit boards, scooters in the street. In the "
+        "foreground one small defeated businessman in a rumpled suit sits on the "
+        "kerb with his head in his hands. Cyan and magenta neon, warm amber "
+        "windows, soft volumetric haze, black sky. " + RCT
+    ),
+    "hotel": (
+        "A rumpled businessman in yesterday's suit stands at a high hotel window at "
+        "dawn looking out over a neon Shenzhen skyline of semiconductor factories, "
+        "an empty minibar bottle and a scattered stack of papers on the sill beside "
+        "him, his jacket on the floor. Warm amber lamp inside, cool cyan city glow "
+        "outside. Cosy, funny, slightly pathetic. " + RCT
+    ),
     "wafer": (
         "A single polished silicon wafer shot perfectly straight on, centred on a "
         "near-black background. The wafer is a dark disc tiled with a fine grid of "

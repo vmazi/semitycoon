@@ -11,6 +11,24 @@ services:
     networks:
       - shared
 
+  # Balance telemetry. Stdlib-only, so the stock python image runs the source
+  # straight off the bind mount and there is still no build step anywhere here.
+  api:
+    image: docker.io/library/python:3.12-alpine
+    container_name: semitycoon-api
+    command: ["python", "-u", "/app/server.py"]
+    volumes:
+      - ../api:/app:ro,z
+      - ./data:/data:z
+    env_file:
+      - ./.env          # ST_KEY, gitignored; lets the balance harness skip the rate limit
+    environment:
+      ST_DB: /data/telemetry.db
+      ST_PORT: "8099"
+    restart: unless-stopped
+    networks:
+      - shared
+
 networks:
   shared:
     external: true
