@@ -117,6 +117,27 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 .acts button:disabled{opacity:.34;cursor:default}
 .acts button.used{opacity:.3}
 
+.exec{margin-top:10px;background:var(--panel);border:1px solid var(--line);
+  border-radius:10px;padding:11px 13px}
+.meters{display:flex;gap:9px;margin-bottom:8px}
+.meters div{flex:1}
+.meters span{display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;color:var(--dim)}
+.meters b{font-family:var(--mono);font-size:15px}
+.st5{position:relative;display:inline-block;white-space:nowrap;vertical-align:-1px;
+  overflow:hidden;line-height:0}
+.st5 .sf{position:absolute;left:0;top:0;height:100%;overflow:hidden;white-space:nowrap;line-height:0}
+
+.execfx{font-family:var(--mono);font-size:9.5px;color:var(--mut);margin-bottom:9px}
+.execfx b{color:var(--tx)}
+.hand{display:flex;gap:6px;margin-bottom:7px}
+.hand button{flex:1 1 0;min-width:0;text-align:left;font-family:var(--mono);font-size:9.5px;
+  padding:9px 8px;border-radius:8px;border:1px solid #2c3845;background:var(--panel2);
+  color:var(--tx);cursor:pointer;line-height:1.35}
+.hand button b{display:block;font-size:10px;margin-bottom:3px;color:var(--vi)}
+.hand button small{display:block;color:var(--dim);font-size:8.5px;line-height:1.45}
+.hand button:disabled{opacity:.35;cursor:default}
+.redeal{width:100%;font-family:var(--mono);font-size:10px;padding:8px;border-radius:7px;
+  border:1px dashed var(--line);background:transparent;color:var(--mut);cursor:pointer}
 .log{margin-top:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;
   padding:9px 11px;height:124px;overflow-y:auto;font-family:var(--mono);font-size:10.5px;line-height:1.6}
 .log div{padding:2px 0;border-bottom:1px solid #161d24;color:var(--mut)}
@@ -232,6 +253,17 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
     <div class="row" id="actRow"></div>
   </div>
 
+  <div class="exec">
+    <div class="gtitle">Executive focus — <b id="execPlays" style="color:var(--vi)">2</b> plays left this era</div>
+    <div class="meters">
+      <div><span>BURNOUT</span><b id="vBurn">0</b><div class="bar"><i id="bBurn"></i></div></div>
+      <div><span>CONTENTION</span><b id="vCont">10</b><div class="bar"><i id="bCont"></i></div></div>
+    </div>
+    <div class="execfx" id="execFx"></div>
+    <div class="hand" id="hand"></div>
+    <button class="redeal" onclick="redeal()">Ask for different cards &nbsp;·&nbsp; +4 burnout</button>
+  </div>
+
   <div class="log" id="log"></div>
 
   <p class="hint"><b>How you win:</b> five eras, most eras won takes it. Quarterly scenarios
@@ -303,6 +335,111 @@ const ADHOC=[
  {id:'rcl', l:'Field recall sweep', cost:2300, s:'clears every latent defect already shipped',
   fx:s=>{let n=0;for(const d of s.dots)if(d.own===0&&d.bad){d.bad=false;d.ign=0;n++}
          log('Recall sweep: '+n+' latent defects pulled before they fired.','good')}}];
+
+/* ================= EXECUTIVE FOCUS =================
+   A hand of three. Play one, draw three more. Ask for new cards whenever you like —
+   indecision just costs you burnout. These are paid for personally, not financially:
+   burnout at 100 ends the run, and contention quietly raises defects and eats picks. */
+const EXEC=[
+ {id:'dive', l:'Deep dive on the line', s:'+0.15 output · +18 burnout, +12 contention',
+  fx:s=>{s.rte+=0.15;s.burn+=0.18;s.cont+=0.12;
+   log('You parked yourself on the floor for a month. It worked, and you trod on people.','act')}},
+ {id:'tiger',l:'Tiger team sessions', s:'+0.12 maintenance, +0.10 coverage, −18 contention · +14 burnout',
+  fx:s=>{s.mnt+=0.12;s.cov+=0.10;s.cont-=0.18;s.burn+=0.14;
+   log('Tiger teams. Everyone exhausted, nobody fighting.','act')}},
+ {id:'trav', l:'Heavy customer travel', s:'+1 planning pick · +20 burnout',
+  fx:s=>{s.genBonus+=1;s.burn+=0.20;
+   log('Forty flights. The roadmap is better and you are not.','act')}},
+ {id:'reorg',l:'Re-organise', s:'−35 contention · +20 burnout, defects up this era',
+  fx:s=>{s.cont-=0.35;s.burn+=0.20;s.reorgDef+=0.10;
+   log('Re-org announced. The politics stopped and so did the quality.','act')}},
+ {id:'vac',  l:'Take a sabbatical', s:'−30 burnout · hiring stalls, next scenarios go worse',
+  fx:s=>{s.burn-=0.30;s.unluckyUntil=s.qDone+2;s.hiringStall=true;
+   log('Two weeks away. You came back rested, to a mess.','act')}},
+ {id:'aff',  l:'Affair with a colleague', s:'−22 burnout · 35% it leaks, badly',
+  fx:s=>{s.burn-=0.22;risk(0.35,3,{cash:-2200,rep:-0.16,cont:0.30},'the affair, once it leaked');
+   log('Nobody knows. For now.','act')}},
+ {id:'aff2', l:'Affair with a rival’s executive', s:'−38 burnout · 50% they learn your roadmap, 40% it leaks',
+  fx:s=>{s.burn-=0.38;
+   risk(0.50,2,{esp:1},'pillow talk with a competitor');
+   risk(0.40,4,{cash:-2600,rep:-0.20,cont:0.26},'the affair, once it leaked');
+   log('They are very easy to talk to. That is rather the problem.','act')}},
+ {id:'cos',  l:'Hire a chief of staff', s:'−$900k · everything burns you 30% less, permanently',
+  fx:s=>{s.cash-=900;s.burnMod*=0.70;log('A chief of staff. The calendar is somebody else’s problem now.','act')}},
+ {id:'coach',l:'Executive coach', s:'−$500k · −12 burnout now and you recover faster',
+  fx:s=>{s.cash-=500;s.burn-=0.12;s.burnHeal+=0.0022;log('Thursdays at four. It is helping.','act')}},
+ {id:'fire', l:'Fire your deputy', s:'−25 contention · +15 burnout, −0.4 capability',
+  fx:s=>{s.cont-=0.25;s.burn+=0.15;s.A[0].cap[s.era]=Math.max(0,s.A[0].cap[s.era]-0.4);
+   log('He had a faction. He also knew how the process worked.','act')}},
+ {id:'allh', l:'All-hands truth session', s:'−28 contention, −6 reputation · +8 burnout',
+  fx:s=>{s.cont-=0.28;s.rep=Math.max(0,s.rep-0.06);s.burn+=0.08;
+   log('You said out loud what everyone knew. It got quiet, then better.','act')}},
+ {id:'board',l:'Charm the board', s:'+2 planning picks · +16 contention, +10 burnout',
+  fx:s=>{s.genBonus+=2;s.cont+=0.16;s.burn+=0.10;
+   log('You went around your own executives to the board. They noticed.','act')}},
+ {id:'key',  l:'Keynote the industry conference', s:'+8 reputation, +0.5 next-era capability · +12 burnout',
+  fx:s=>{s.rep=Math.min(1,s.rep+0.08);const t=Math.min(NERA-1,s.era+1);s.A[0].cap[t]+=0.5;s.burn+=0.12;
+   log('The talk landed. Three good engineers emailed you afterwards.','act')}},
+ {id:'micro',l:'Micromanage the test floor', s:'+0.18 coverage · +16 burnout, +14 contention',
+  fx:s=>{s.cov+=0.18;s.burn+=0.16;s.cont+=0.14;
+   log('Nothing ships without you seeing it. Coverage is up. Morale is not.','act')}},
+ {id:'deleg',l:'Delegate everything for a quarter', s:'−26 burnout · the plant drifts without you',
+  fx:s=>{s.burn-=0.26;
+   const d=()=>(Math.random()-0.5)*0.26;
+   s.cov+=d();s.mnt+=d();s.rte+=d();
+   log('You stepped back. Things moved. Not all of them the right way.','act')}},
+ {id:'leak', l:'Leak a rival’s slipped schedule', s:'leader −30% socket rate · 45% blowback',
+  fx:s=>{bestRival().rateMod*=0.70;
+   risk(0.45,3,{rep:-0.14,cont:0.22},'the story you planted about a rival');
+   log('A journalist got a very well-informed tip.','act')}},
+ {id:'cuffs',l:'Golden handcuffs for key staff', s:'−$1300k · rivals cannot poach this era · +14 contention',
+  fx:s=>{s.cash-=1300;s.poachProof=true;s.cont+=0.14;
+   log('The people who mattered are locked in. Everyone else did the maths.','act')}},
+ {id:'mara', l:'Train for a marathon', s:'−6 burnout now, and you recover faster for good',
+  fx:s=>{s.burn-=0.06;s.burnHeal+=0.0018;log('Five a.m. runs. Unbearable, then load-bearing.','act')}},
+ {id:'side', l:'Found a side venture', s:'+$1600k · +18 burnout, 40% conflict-of-interest scandal',
+  fx:s=>{s.cash+=1600;s.burn+=0.18;
+   risk(0.40,4,{cash:-1800,rep:-0.14,cont:0.20},'your side venture');
+   log('It is unrelated. Mostly.','act')}}];
+
+function deal(){
+  if(!S.deck||S.deck.length<3)S.deck=EXEC.map((_,i)=>i).sort(()=>Math.random()-0.5);
+  S.hand=[S.deck.pop(),S.deck.pop(),S.deck.pop()];
+  drawHand();
+}
+function redeal(){
+  if(S.phase!=='play')return;
+  S.burn=Math.min(1,S.burn+0.04);           // asking for options is itself tiring
+  S.deck.unshift(...S.hand); deal();
+}
+function playCard(i){
+  if(S.phase!=='play'||S.execPlays<=0)return;
+  const c=EXEC[S.hand[i]];
+  const before=S.burn;
+  c.fx(S);
+  S.burn=before+(S.burn-before)*(S.burn>before?S.burnMod:1);  // chief of staff softens the hits
+  clampLevers(); S.execPlays--;
+  deal(); drawActions();
+}
+function drawHand(){
+  const h=$('hand'); if(!h)return;
+  h.innerHTML=S.hand.map((ix,i)=>{const c=EXEC[ix];
+    return `<button onclick="playCard(${i})" ${S.execPlays>0&&S.phase==='play'?'':'disabled'}>
+      <b>${c.l}</b><small>${c.s}</small></button>`}).join('');
+  $('execPlays').textContent=S.execPlays;
+  const bb=$('bBurn'), bc=$('bCont');
+  if(bb){bb.style.width=(S.burn*100)+'%';
+    bb.style.background=S.burn>.75?'var(--rd)':S.burn>.45?'var(--am)':'var(--gr)';
+    $('vBurn').textContent=Math.round(S.burn*100);
+    $('vBurn').style.color=S.burn>.75?'var(--rd)':S.burn>.45?'var(--am)':'var(--gr)';
+    bc.style.width=(S.cont*100)+'%';
+    bc.style.background=S.cont>.6?'var(--rd)':S.cont>.35?'var(--am)':'var(--gr)';
+    $('vCont').textContent=Math.round(S.cont*100);
+    $('vCont').style.color=S.cont>.6?'var(--rd)':S.cont>.35?'var(--am)':'var(--gr)';
+    $('execFx').innerHTML=`defects <b style="color:${S.cont>.35?'var(--am)':'var(--mut)'}">+${Math.round(S.cont*25)}%</b> from contention`+
+      ` · ad-hoc costs <b style="color:${S.burn>.45?'var(--am)':'var(--mut)'}">+${Math.round(S.burn*60)}%</b> from burnout`;
+  }
+}
 
 /* ================= GENERATIONAL PICKS ================= */
 const GEN=[
@@ -406,7 +543,9 @@ function reset(){
      baseCov:0.70,baseMnt:0.70,baseRte:1.00,
      cov:0.70,mnt:0.70,rte:1.00,testFast:false,revMod:1,actDisc:1,
      era:0,eraT:0,qDone:0,phase:'play',
-     genBonus:0,genBudget:3,capTarget:0,founding:true,adhocCount:0,unlock:{},usedThisEra:{},
+     genBonus:0,genBudget:3,capTarget:0,founding:true,
+     burn:0,cont:0.10,reorgDef:0,unluckyUntil:0,
+     burnMod:1,burnHeal:0,poachProof:false,hand:[],deck:[],execPlays:2,adhocCount:0,unlock:{},usedThisEra:{},
      pending:[],scenPool:[],
      motes:[],flights:[],dots:[],blooms:[],log:[],
      spawnT:0,testBusy:0,testQ:[],rivalT:0,
@@ -417,8 +556,8 @@ function reset(){
                  seg:segOf(r),cov:0,fl:Math.random()*6.3});
   for(let i=0;i<22;i++){const d=S.dots[(Math.random()*S.dots.length)|0];
     if(d.own<0)d.own=1+((Math.random()*3)|0)}
-  S.log=[]; log('The Mainframe era begins. Everyone starts at reliability 2.0','era');
-  drawLegend(); drawActions();
+  S.log=[]; log('The Mainframe era begins. Everyone starts at '+starsPlain(2)+' reliability.','era');
+  deal(); drawLegend(); drawActions();
 }
 function log(m,cls){
   S.log.unshift({d:ERAS[S.era].n.slice(0,4),m,cls:cls||''});
@@ -432,12 +571,28 @@ function drawLegend(){
     +'<span><i style="background:#5a2d26"></i>field failure</span>';
 }
 const fitness=a=>0.35+0.30*a.cap[S.era];
+// capability reads as five stars, filled to the nearest quarter star.
+// drawn as inline SVG rather than the glyph, which is not in every font.
+const PATH='M5 .7 6.3 3.9 9.7 4.1 7.1 6.2 8 9.4 5 7.6 2 9.4 2.9 6.2 .3 4.1 3.7 3.9Z';
+// sized in px, not %, so the clipped overlay does not shrink its own stars
+const ROW=(c,z)=>`<svg width="${z*5}" height="${z}" viewBox="0 0 50 10">`+
+  [0,1,2,3,4].map(i=>`<path transform="translate(${i*10},0)" d="${PATH}" fill="${c}"/>`).join('')+'</svg>';
+function stars(v,size){
+  const z=size||10, q=Math.max(0,Math.min(5,Math.round(v*4)/4));
+  return `<span class="st5" style="width:${z*5}px;height:${z}px">`+
+    `<span class="sf" style="width:${(q/5*100).toFixed(1)}%">${ROW('#a98ae0',z)}</span>`+
+    ROW('#2b3644',z)+'</span>';
+}
+const starsPlain=stars;
 const clampLevers=()=>{S.cov=Math.max(0,Math.min(1,S.cov));
-  S.mnt=Math.max(0,Math.min(1,S.mnt)); S.rte=Math.max(0.5,Math.min(1.9,S.rte))};
+  S.mnt=Math.max(0,Math.min(1,S.mnt)); S.rte=Math.max(0.5,Math.min(1.9,S.rte));
+  S.burn=Math.max(0,Math.min(1,S.burn)); S.cont=Math.max(0,Math.min(1,S.cont))};
 
 /* ---- deferred consequences ---- */
 function risk(p,quarters,fx,why){
-  S.pending.push({p,at:S.qDone+quarters,fx,why});
+  // a tired, distracted executive is simply unluckier
+  const bump=S.qDone<S.unluckyUntil?0.20:0;
+  S.pending.push({p:Math.min(0.95,p+bump),at:S.qDone+quarters,fx,why});
 }
 function resolvePending(){
   for(let i=S.pending.length-1;i>=0;i--){
@@ -448,10 +603,17 @@ function resolvePending(){
     if(r.fx.cash){S.cash+=r.fx.cash}
     if(r.fx.rep){S.rep=Math.max(0,S.rep+r.fx.rep)}
     if(r.fx.gen){S.genBonus+=r.fx.gen}
+    if(r.fx.cont){S.cont=Math.min(1,S.cont+r.fx.cont)}
+    if(r.fx.esp){const v=bestRival();
+      v.cap[S.era]=Math.min(5,v.cap[S.era]+0.5);
+      if(S.era+1<NERA)v.cap[S.era+1]=Math.min(5,v.cap[S.era+1]+0.7);
+      log('⚠ '+v.n+' is suddenly building exactly what you were going to build.','bad')}
     const bits=[];
     if(r.fx.cash)bits.push(fmtC(r.fx.cash));
     if(r.fx.rep)bits.push(Math.round(r.fx.rep*100)+' rep');
     if(r.fx.gen)bits.push(r.fx.gen+' planning picks');
+    if(r.fx.cont)bits.push('+'+Math.round(r.fx.cont*100)+' contention');
+    if(r.fx.esp)bits.push('your roadmap');
     log('⚠ Backlash from '+r.why+': '+bits.join(', '),'bad');
   }
 }
@@ -471,7 +633,7 @@ function step(dt){
   S.spawnT-=dt;
   if(S.spawnT<=0){
     S.spawnT=0.52/S.rte;
-    const pDef=Math.min(.75,0.015+0.38*(1-S.mnt)+0.32*Math.max(0,S.rte-1));
+    const pDef=Math.min(.85,0.015+0.38*(1-S.mnt)+0.32*Math.max(0,S.rte-1)+0.25*S.cont+S.reorgDef);
     S.motes.push({seg:0,p:0,bad:Math.random()<pDef,cov:S.cov});
     S.cash-=3;
   }
@@ -520,6 +682,12 @@ function step(dt){
     if(b.a<=0)S.blooms.splice(i,1);
   }
   S.rep=Math.min(1,S.rep+dt*0.006);
+  // you recover slowly; the politics accrete slowly
+  // check before the decay tick, or recovery always shaves it just under the line
+  if(S.burn>=1)return finish('Burned out',
+    'You ran yourself into the ground. The board thanked you for your service.');
+  S.burn=Math.max(0,S.burn-dt*(0.0011+S.burnHeal));
+  S.cont=Math.max(0,Math.min(1,S.cont+dt*0.0016));
 
   // quarterly planning
   const qLen=E.dur/QPE;
@@ -585,19 +753,20 @@ function pickScen(i){
 }
 
 /* ================= AD-HOC ================= */
+function actCost(a){return Math.round(a.cost*S.actDisc*(1+0.6*S.burn))}
 function drawActions(){
   $('actRow').innerHTML=ADHOC.map(a=>{
-    const cost=Math.round(a.cost*S.actDisc);
+    const cost=actCost(a);
     const used=S.usedThisEra[a.id];
-    const locked=a.need&&!S.unlock[a.need];
+    const locked=(a.need&&!S.unlock[a.need])||(S.hiringStall&&(a.id==='poa'));
     const can=!used&&!locked&&S.cash>=cost&&S.phase==='play';
     return `<button ${can?'':'disabled'} class="${used?'used':''}" onclick="doAct('${a.id}')">
       <b>${a.l}</b><span>${fmtC(-cost)}</span>
-      <small>${locked?'needs: raise equity':used?'already used this era':a.s}</small></button>`;
+      <small>${locked?(S.hiringStall&&a.id==='poa'?'hiring stalled by your sabbatical':'needs: raise equity'):used?'already used this era':a.s}</small></button>`;
   }).join('');
 }
 function doAct(id){
-  const a=ADHOC.find(x=>x.id===id), cost=Math.round(a.cost*S.actDisc);
+  const a=ADHOC.find(x=>x.id===id), cost=actCost(a);
   if(S.usedThisEra[a.id]||S.cash<cost)return;
   S.cash-=cost; S.usedThisEra[a.id]=true; S.adhocCount++;
   a.fx(S); clampLevers();
@@ -620,13 +789,16 @@ function endEra(){
   log(`${ERAS[S.era].n} era ends — you placed #${k+1} with ${Math.round(st[k].pc*100)}%, +${PTS[k]} points`,'era');
   if(S.era>=NERA-1){S.phase='done';S.run=false;return showFinal()}
   // budget comes from last era's placement plus how hard you worked the ad-hoc layer
-  S.genBudget=Math.max(1,Math.min(7, 2 + [2,1,0,0][k] + Math.floor(S.adhocCount/3) + S.genBonus));
+  const raw = 2 + [2,1,0,0][k] + Math.floor(S.adhocCount/3) + S.genBonus;
+  S.contPenalty = Math.round(raw*0.45*S.cont);
+  S.genBudget = Math.max(1, Math.min(7, raw - S.contPenalty));
   S.genBonus=0;
   S.phase='between'; S.run=false; showGen(st,k);
 }
 function beginNextEra(){
   S.era++; S.eraT=0; S.qInEra=0; S.phase='play'; S.run=false;
-  S.usedThisEra={}; S.testFast=false;
+  S.usedThisEra={}; S.testFast=false; S.reorgDef=0; S.hiringStall=false;
+  S.poachProof=false; S.execPlays=2; deal();
   S.cov=S.baseCov; S.mnt=S.baseMnt; S.rte=S.baseRte; clampLevers();
   for(let i=1;i<S.A.length;i++)S.A[i].rateMod=1;
   for(const d of S.dots){
@@ -635,8 +807,8 @@ function beginNextEra(){
     d.bad=false; d.ign=0;
   }
   S.motes=[];S.flights=[];S.testQ=[];S.blooms=[];
-  log(`The ${ERAS[S.era].n} era begins — won on ${ERAS[S.era].cap}. You arrive at ${S.A[0].cap[S.era].toFixed(1)}.`,'era');
-  $('over').style.display='none'; setPauseBtn(); drawActions();
+  log(`The ${ERAS[S.era].n} era begins — won on ${ERAS[S.era].cap}. You arrive at ${starsPlain(S.A[0].cap[S.era])}.`,'era');
+  $('over').style.display='none'; setPauseBtn(); drawActions(); drawHand();
 }
 
 /* ================= OVERLAYS ================= */
@@ -667,13 +839,13 @@ function showGen(st,place,founding){
       <h2 style="font-size:14px;color:var(--cy);margin-bottom:3px">${founding?'FOUNDING PLAN':'GENERATIONAL PLANNING'}</h2>
       <p style="font-size:12.5px;margin:4px 0 2px">${founding?'First up':'Next'} is the
         <b style="color:var(--tx)">${nx.n}</b> era — won on
-        <b style="color:var(--vi)">${nx.cap}</b>. You arrive at
-        <b style="color:var(--tx)">${S.A[0].cap[S.capTarget].toFixed(1)}</b>,
-        best rival <b>${Math.max(...S.A.slice(1).map(a=>a.cap[S.capTarget])).toFixed(1)}</b>.</p>
+        <b style="color:var(--vi)">${nx.cap}</b>.<br>You arrive at
+        ${stars(S.A[0].cap[S.capTarget])} — best rival
+        ${stars(Math.max(...S.A.slice(1).map(a=>a.cap[S.capTarget])))}.</p>
       <div class="budget"><span>PICKS</span><b id="gBud">${S.genBudget}</b>
         <span class="sp"></span>
         <span style="color:var(--dim)">${founding?'you are starting from nothing'
-          :'placed #'+(place+1)+' · '+S.adhocCount+' ad-hoc actions'}</span></div>
+          :'placed #'+(place+1)+' · '+S.adhocCount+' ad-hoc'+(S.contPenalty?' · <span style="color:var(--rd)">−'+S.contPenalty+' to contention</span>':'')}</span></div>
       ${groups.map(g=>`<div class="gengrp"><h4>${g}</h4>
         ${GEN.filter(x=>x.g===g).map(x=>
           `<div class="gp" id="gp_${x.id}" onclick="togglePick('${x.id}')">
@@ -908,7 +1080,7 @@ function hud(){
   $('hRep').textContent=Math.round(S.rep*100);
   const br=$('bRep'); br.style.width=(S.rep*100)+'%';
   br.style.background=S.rep<.4?'var(--rd)':S.rep<.7?'var(--am)':'var(--gr)';
-  updateReadouts();
+  updateReadouts(); drawHand();
   const R=claimRates(), bestR=Math.max(...R.riv), bi=R.riv.indexOf(bestR)+1;
   $('hFit').textContent=R.you.toFixed(2);
   $('hFit').style.color=R.you>=bestR?'var(--gr)':'var(--rd)';
@@ -917,13 +1089,14 @@ function hud(){
   $('hFitSub').textContent='best rival '+bestR.toFixed(2);
   const myCap=S.A[0].cap[S.era], bestCap=Math.max(...S.A.slice(1).map(a=>a.cap[S.era]));
   $('why').innerHTML = R.you>=bestR
-    ? `You are taking sockets faster than anyone. <b>${R.ship.toFixed(1)}/s</b> off the line × capability <b>${myCap.toFixed(1)}</b>.`
+    ? `You are taking sockets faster than anyone. <b>${R.ship.toFixed(1)}/s</b> off the line × ${stars(myCap)}.`
     : myCap>=bestCap
-      ? `Your capability (<b>${myCap.toFixed(1)}</b>) already beats ${S.A[bi].n}'s — <b style="color:var(--am)">your plant is the limit, not your R&amp;D.</b>`
-      : `${S.A[bi].n} is ahead on both: capability <b>${S.A[bi].cap[S.era].toFixed(1)}</b> vs <b>${myCap.toFixed(1)}</b>, and <b>${bestR.toFixed(2)}</b> sockets/sec vs <b>${R.you.toFixed(2)}</b>.`;
+      ? `You are ${stars(myCap)} against ${S.A[bi].n}'s ${stars(S.A[bi].cap[S.era])} — <b style="color:var(--am)">your plant is the limit, not your R&amp;D.</b>`
+      : `${S.A[bi].n} is ahead on both: ${stars(S.A[bi].cap[S.era])} against your ${stars(myCap)}, and <b>${bestR.toFixed(2)}</b> sockets/sec vs <b>${R.you.toFixed(2)}</b>.`;
   $('score').innerHTML=S.A.map(a=>`<div><span style="color:${a.c}">${a.n}</span>
     <b style="color:${a.c}">${a.pts}</b>
-    <em>${(a===S.A[0]?R.you:R.riv[S.A.indexOf(a)-1]).toFixed(2)}/s · cap ${a.cap[S.era].toFixed(1)}</em></div>`).join('');
+    <em>${(a===S.A[0]?R.you:R.riv[S.A.indexOf(a)-1]).toFixed(2)}/s</em>
+    <em>${stars(a.cap[S.era],9)}</em></div>`).join('');
 }
 let last=performance.now();
 function frame(now){
