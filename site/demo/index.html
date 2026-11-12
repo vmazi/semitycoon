@@ -148,7 +148,7 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 
 .over{position:fixed;inset:0;background:rgba(6,8,11,.95);z-index:40;overflow-y:auto;padding:14px}
 .ocard{max-width:430px;margin:10px auto;background:var(--panel);border:1px solid var(--line);
-  border-radius:12px;padding:18px}
+  border-radius:12px;padding:18px;padding-bottom:10px}
 .ocard h2{font-family:var(--mono);font-size:17px;margin:0 0 3px;line-height:1.3}
 .ocard .sub{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--am);
   text-transform:uppercase;margin-bottom:10px}
@@ -186,8 +186,10 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
   background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin-top:12px}
 .budget b{color:var(--vi);font-size:15px}
 .budget .sp{flex:1}
-.obtn{width:100%;margin-top:14px;font-family:var(--mono);font-size:13px;padding:13px;
-  border-radius:8px;border:0;background:var(--cy);color:#06181d;font-weight:700;cursor:pointer}
+.obtn{position:sticky;bottom:-2px;z-index:5;width:100%;margin-top:14px;
+  font-family:var(--mono);font-size:13px;padding:14px;border-radius:8px;border:0;
+  background:var(--cy);color:#06181d;font-weight:700;cursor:pointer;
+  box-shadow:0 -10px 18px rgba(18,22,27,.95)}
 .obtn:disabled{opacity:.4}
 .hint{margin-top:11px;font-size:13px;color:var(--mut);line-height:1.6}
 .hint b{color:var(--am)}
@@ -741,7 +743,7 @@ function openScenario(){
     <h2>${sc.t}</h2><p>${sc.d}</p>
     <div class="opts">${sc.o.map((o,i)=>
       `<button onclick="pickScen(${i})"><b>${o.l}</b><small>${o.s}</small></button>`).join('')}</div>`;
-  $('over').style.display='block';
+  $('over').style.display='block'; $('over').scrollTop=0;
   window.__scen=sc;
 }
 function pickScen(i){
@@ -853,7 +855,7 @@ function showGen(st,place,founding){
             <span class="gt">${x.l}<small>${x.s}</small></span></div>`).join('')}</div>`).join('')}
     </div>
     <button class="obtn" id="gGo" onclick="commitGen()">Begin the ${nx.n} era</button>`;
-  $('over').style.display='block';
+  $('over').style.display='block'; $('over').scrollTop=0;
   updateGen();
 }
 function spent(){return GPICK.reduce((a,id)=>a+GEN.find(g=>g.id===id).k,0)}
@@ -902,7 +904,7 @@ function showFinal(){
       shipped ${S.shipped} · caught ${S.caught} · escaped ${S.escaped}<br>
       field failures ${S.fires} · ad-hoc actions ${S.adhocCount} · capital ${fmtC(S.cash)}</div>
     <button class="obtn" onclick="hardReset()">Run it again</button>`;
-  $('over').style.display='block';
+  $('over').style.display='block'; $('over').scrollTop=0;
 }
 function finish(t,p){
   S.run=false; S.phase='done';
@@ -912,7 +914,7 @@ function finish(t,p){
       eras survived ${S.era} of ${NERA} · points ${S.A[0].pts}<br>
       shipped ${S.shipped} · escaped ${S.escaped} · field failures ${S.fires}</div>
     <button class="obtn" onclick="hardReset()">Run it again</button>`;
-  $('over').style.display='block';
+  $('over').style.display='block'; $('over').scrollTop=0;
 }
 function showIntro(){
   $('ocard').innerHTML=`
@@ -932,7 +934,7 @@ function showIntro(){
     ${S.A.slice(1).map(a=>`<div style="font-family:var(--mono);font-size:11px;padding:3px 0;color:var(--mut)">
       <span style="color:${a.c}">${a.n}</span> — ${a.bio}</div>`).join('')}</div>
     <button class="obtn" onclick="startPlay()">Begin the Mainframe era</button>`;
-  $('over').style.display='block';
+  $('over').style.display='block'; $('over').scrollTop=0;
 }
 function startPlay(){S.genBudget=3;showGen(null,0,true)}
 function hardReset(){reset();showIntro();setPauseBtn()}
