@@ -48,6 +48,8 @@ a{color:var(--cy)}
 .hud span{display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.11em;
   color:var(--dim);text-transform:uppercase}
 .hud b{font-family:var(--mono);font-size:15px;font-weight:600}
+.hud em{display:block;font-style:normal;font-family:var(--mono);font-size:8px;
+  color:var(--dim);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar{height:4px;background:#0b1014;border-radius:3px;margin-top:4px;overflow:hidden}
 .bar i{display:block;height:100%;border-radius:3px;transition:width .3s}
 
@@ -58,6 +60,9 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 .legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;
   vertical-align:-1px}
 
+.why{margin-top:7px;font-family:var(--mono);font-size:10.5px;line-height:1.55;
+  color:var(--mut);padding:0 2px}
+.why b{color:var(--tx)}
 .field{display:flex;gap:5px;margin-top:8px}
 .field div{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);
   border-radius:7px;padding:5px 6px}
@@ -166,8 +171,9 @@ input[type=range]{width:100%;height:28px;margin:1px 0 0}
       <div class="bar"><i id="bShare" style="background:var(--cy);width:0%"></i></div></div>
     <div><span>Reputation</span><b id="hRep" style="color:var(--gr)">100</b>
       <div class="bar"><i id="bRep" style="background:var(--gr);width:100%"></i></div></div>
-    <div><span>Era fitness</span><b id="hFit" style="color:var(--vi)">2.0</b>
-      <div class="bar"><i id="bFit" style="background:var(--vi);width:40%"></i></div></div>
+    <div><span>Sockets / sec</span><b id="hFit" style="color:var(--vi)">0.00</b>
+      <div class="bar"><i id="bFit" style="background:var(--vi);width:0%"></i></div>
+      <em id="hFitSub">&nbsp;</em></div>
   </div>
 
   <canvas id="cv" width="400" height="400"></canvas>
@@ -175,6 +181,7 @@ input[type=range]{width:100%;height:28px;margin:1px 0 0}
   <div class="field" id="field"></div>
 
   <div class="chain" id="chain"></div>
+  <div class="why" id="why"></div>
 
   <div class="levers">
     <div class="lev">
@@ -629,10 +636,26 @@ function hud(){
   $('hFit').textContent=f.toFixed(1);
   $('bFit').style.width=(f/5*100)+'%';
   updateReadouts();
+  const R=claimRates(), bestR=Math.max(...R.riv), bi=R.riv.indexOf(bestR)+1;
+  $('hFit').textContent=R.you.toFixed(2);
+  $('hFit').style.color=R.you>=bestR?'var(--gr)':'var(--rd)';
+  $('bFit').style.width=Math.min(100,R.you/Math.max(bestR,R.you,0.01)*100)+'%';
+  $('bFit').style.background=R.you>=bestR?'var(--gr)':'var(--rd)';
+  $('hFitSub').textContent='best rival '+bestR.toFixed(2);
+  const myCap=S.A[0].cap[S.era], bestCap=Math.max(...S.A.slice(1).map(a=>a.cap[S.era]));
+  $('why').innerHTML = R.you>=bestR
+    ? `You are taking sockets faster than anyone. <b>${R.ship.toFixed(1)}/s</b> off the line `+
+      `× capability <b>${myCap.toFixed(1)}</b> = <b>${R.you.toFixed(2)}</b> sockets/sec.`
+    : myCap>=bestCap
+      ? `Your capability (<b>${myCap.toFixed(1)}</b>) already beats ${S.A[bi].n}'s `+
+        `(<b>${S.A[bi].cap[S.era].toFixed(1)}</b>) — <b style="color:var(--am)">your line is the limit, not your R&amp;D.</b> `+
+        `Only <b>${R.ship.toFixed(1)}</b> units/sec are getting out of the door.`
+      : `${S.A[bi].n} is ahead on both: capability <b>${S.A[bi].cap[S.era].toFixed(1)}</b> vs your `+
+        `<b>${myCap.toFixed(1)}</b>, and <b>${bestR.toFixed(2)}</b> sockets/sec vs your <b>${R.you.toFixed(2)}</b>.`;
   $('score').innerHTML=S.A.map(a=>`<div>
     <span style="color:${a.c}">${a.n}</span>
     <b style="color:${a.c}">${a.pts}</b>
-    <em>${a.cap[S.era].toFixed(1)} fit</em></div>`).join('');
+    <em>${(a===S.A[0]?R.you:R.riv[S.A.indexOf(a)-1]).toFixed(2)}/s · cap ${a.cap[S.era].toFixed(1)}</em></div>`).join('');
 }
 
 /* ---- the causal chain, in live numbers, so the sliders stop being abstract ---- */
@@ -646,6 +669,15 @@ function derive(){
   return {spawn,pDef,catchR,thr,backing:spawn>thr,
           escPerSec:spawn*pDef*(1-catchR),
           testCost:0.5+7*S.cov, mntCost:26*S.mnt};
+}
+// sockets/sec is what actually decides an era. capability is only one input to it:
+// the other is how many units your line can actually get out of the door.
+function claimRates(){
+  const D=derive();
+  const ship=Math.min(D.spawn,D.thr)*(1-D.pDef*D.catchR);
+  const you=ship*(TUNE.fb+TUNE.fc*S.A[0].cap[S.era]);
+  const riv=S.A.slice(1).map(a=>(TUNE.rb+TUNE.rc*a.cap[S.era])/0.34);
+  return {you,riv,ship,D};
 }
 function updateReadouts(){
   const D=derive();
