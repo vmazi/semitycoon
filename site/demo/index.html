@@ -243,7 +243,7 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 
 <div class="top">
   <a href="../design/">← design</a><a href="../mockups/">mockups</a>
-  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b16</span></h1>
+  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b17</span></h1>
 </div>
 
 <div class="wrap">
@@ -266,12 +266,12 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 
   <div class="hud">
     <div><span>Capital</span><b id="hCash" style="color:var(--gr)">$0k</b></div>
-    <div><span>This market</span>
+    <div><span>This market · WINS THE ERA</span>
       <div class="mrow"><i id="pie"></i><b id="hShare" style="color:var(--cy)">0%</b></div>
       <div class="bar"><i id="bShare" style="background:var(--cy);width:0%"></i></div></div>
     <div><span>Reputation</span><b id="hRep" style="color:var(--gr)">100</b>
       <div class="bar"><i id="bRep" style="background:var(--gr);width:100%"></i></div></div>
-    <div><span>Sockets / sec</span><b id="hFit" style="color:var(--vi)">0.00</b>
+    <div><span>Sockets / sec · rate</span><b id="hFit" style="color:var(--vi)">0.00</b>
       <div class="bar"><i id="bFit" style="background:var(--vi);width:0%"></i></div>
       <em id="hFitSub">&nbsp;</em></div>
   </div>
@@ -1237,9 +1237,9 @@ const TUT=[
  {t:'.erabar', n:'Step 1', h:'The era you are in',
   p:'The era name, the years, and <b>what this era is won on</b> — Mainframe rewards reliability, PC rewards cost and volume. The bar is time remaining, and the ticks are the four quarterly planning points.'},
  {t:'.score', n:'Step 2', h:'You and three rivals',
-  p:'Points so far, <b>sockets per second</b>, and capability in stars. Each rival runs one fixed doctrine: <b>Hoshino</b> always builds for now, <b>Kaito</b> always builds for next, <b>Meridian</b> hedges. Watch Hoshino win early and collapse.'},
+  p:'Points so far, the rate each company is taking sockets, and capability in stars. Each rival runs one fixed doctrine: <b>Hoshino</b> always builds for now, <b>Kaito</b> always builds for next, <b>Meridian</b> hedges. Watch Hoshino win early and collapse.'},
  {t:'.hud', n:'Step 3', h:'Capital, market, reputation, rate',
-  p:'Capital pays for ad-hoc actions. The pie is <b>this era\'s market</b> — yours against the other three and the unclaimed remainder. Sockets/sec is the number that actually decides the era, and it shows the best rival underneath so you always know if you are ahead.'},
+  p:'Capital pays for ad-hoc actions. The pie is <b>this era\'s market</b> — yours against the other three and the unclaimed remainder. <b>Market share wins the era</b> — the pie is the scoreboard. Sockets/sec is the speedometer: the rate you are gaining share, with the best rival shown underneath so you know if you are pulling ahead or falling behind.'},
  {t:'.gauges', n:'Step 4', h:'The plant — you cannot touch it directly',
   p:'Coverage, maintenance and output are <b>moved only by your decisions</b>, never by hand. Each line tells you what it is doing right now: how many defects you catch, what share of units are born bad, units per second.'},
  {t:'.acts', n:'Step 5', h:'Ad-hoc actions',
