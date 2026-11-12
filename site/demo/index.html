@@ -243,7 +243,7 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 
 <div class="top">
   <a href="../design/">← design</a><a href="../mockups/">mockups</a>
-  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b17</span></h1>
+  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b18</span></h1>
 </div>
 
 <div class="wrap">
@@ -387,7 +387,7 @@ const ADHOC=[
  {id:'tst', l:'Expand test floor',  cost:2200, s:'coverage stops slowing the line',
   fx:s=>{s.testFast=true}},
  {id:'poa', l:'Poach a rival lead', cost:2600, s:'+0.4 your capability, −0.35 theirs', need:'eq',
-  fx:s=>{const r=bestRival(); s.A[0].cap[s.era]+=0.4; r.cap[s.era]=Math.max(0,r.cap[s.era]-0.35);
+  fx:s=>{const r=bestRival(); bump(s,0,0.4); bump(s,0,-0.35,r);
          log('Poached a lead engineer from '+r.n+'.','act')}},
  {id:'war', l:'Price war',          cost:2400, s:'every rival −25% socket rate · this era',
   fx:s=>{for(let i=1;i<s.A.length;i++)s.A[i].rateMod*=0.75}},
@@ -428,7 +428,7 @@ const EXEC=[
  {id:'coach',l:'Executive coach', s:'−$500k · −12 burnout now and you recover faster',
   fx:s=>{s.cash-=500;s.burn-=0.12;s.burnHeal+=0.0022;log('Thursdays at four. It is helping.','act')}},
  {id:'fire', l:'Fire your deputy', s:'−25 contention · +15 burnout, −0.4 capability',
-  fx:s=>{s.cont-=0.25;s.burn+=0.15;s.A[0].cap[s.era]=Math.max(0,s.A[0].cap[s.era]-0.4);
+  fx:s=>{s.cont-=0.25;s.burn+=0.15;bump(s,0,-0.4);
    log('He had a faction. He also knew how the process worked.','act')}},
  {id:'allh', l:'All-hands truth session', s:'−28 contention, −6 reputation · +8 burnout',
   fx:s=>{s.cont-=0.28;s.rep=Math.max(0,s.rep-0.06);s.burn+=0.08;
@@ -437,7 +437,7 @@ const EXEC=[
   fx:s=>{s.genBonus+=2;s.cont+=0.16;s.burn+=0.10;
    log('You went around your own executives to the board. They noticed.','act')}},
  {id:'key',  l:'Keynote the industry conference', s:'+8 reputation, +0.5 next-era capability · +12 burnout',
-  fx:s=>{s.rep=Math.min(1,s.rep+0.08);const t=Math.min(NERA-1,s.era+1);s.A[0].cap[t]+=0.5;s.burn+=0.12;
+  fx:s=>{s.rep=Math.min(1,s.rep+0.08);bump(s,1,0.5);s.burn+=0.12;
    log('The talk landed. Three good engineers emailed you afterwards.','act')}},
  {id:'micro',l:'Micromanage the test floor', s:'+0.18 coverage · +16 burnout, +14 contention',
   fx:s=>{s.cov+=0.18;s.burn+=0.16;s.cont+=0.14;
@@ -505,7 +505,7 @@ function drawHand(){
 /* ================= GENERATIONAL PICKS ================= */
 const GEN=[
  {g:'PROCESS',  id:'node', k:2, l:'Node shrink program', s:'+1.2 capability for the coming era',
-  fx:s=>{s.A[0].cap[s.capTarget]+=1.2}},
+  fx:s=>{bump(s,s.capTarget-s.era,1.2)}},
  {g:'PROCESS',  id:'yield',k:1, l:'Standing yield task force', s:'+0.18 maintenance, permanently',
   fx:s=>{s.baseMnt+=0.18}},
  {g:'PROCESS',  id:'fab',  k:2, l:'Second fab line', s:'+0.25 output, permanently',
@@ -515,13 +515,13 @@ const GEN=[
  {g:'PEOPLE',   id:'grad', k:1, l:'Graduate pipeline', s:'+1 planning pick, every era after this',
   fx:s=>{s.genBonus+=1}},
  {g:'PEOPLE',   id:'team', k:2, l:"Poach a rival's whole team", s:'+0.8 your capability, −0.6 theirs',
-  fx:s=>{const r=bestRival(); s.A[0].cap[s.capTarget]+=0.8; r.cap[s.capTarget]=Math.max(0,r.cap[s.capTarget]-0.6)}},
+  fx:s=>{const r=bestRival(); bump(s,s.capTarget-s.era,0.8); bump(s,s.capTarget-s.era,-0.6,r)}},
  {g:'PARTNERS', id:'fdry', k:1, l:'Foundry alliance', s:'+0.30 output, −12% revenue per unit',
   fx:s=>{s.baseRte+=0.30; s.revMod*=0.88}},
  {g:'PARTNERS', id:'codev',k:2, l:'Customer co-development', s:'+1.0 capability for the coming era',
-  fx:s=>{s.A[0].cap[s.capTarget]+=1.0}},
+  fx:s=>{bump(s,s.capTarget-s.era,1.0)}},
  {g:'PARTNERS', id:'vend', k:1, l:'Equipment vendor early access', s:'+0.4 capability, ad-hoc costs −30%',
-  fx:s=>{s.A[0].cap[s.capTarget]+=0.4; s.actDisc*=0.7}},
+  fx:s=>{bump(s,s.capTarget-s.era,0.4); s.actDisc*=0.7}},
  {g:'CAPITAL',  id:'eq',   k:1, l:'Raise equity', s:'+$2000k now, −1 pick next era',
   fx:s=>{s.cash+=2000; s.genBonus-=1; s.unlock.eq=true}},
  {g:'CAPITAL',  id:'bb',   k:1, l:'Share buyback', s:'−$1200k now, +1 pick next era',
@@ -562,10 +562,10 @@ const SCEN=[
 
  {t:'Your lead process engineer is being courted', d:'A rival opened an office eleven miles away. She has taken the call.',
   o:[{l:'Match the offer', s:'<span class="cost">−$500k</span> · <span class="gain">+0.3 capability</span>',
-      fx:s=>{s.cash-=500; s.A[0].cap[s.era]+=0.3}},
-     {l:'Let her go', s:'<span class="cost">−0.5 capability</span>', fx:s=>{s.A[0].cap[s.era]=Math.max(0,s.A[0].cap[s.era]-0.5)}},
+      fx:s=>{s.cash-=500; bump(s,0,0.3)}},
+     {l:'Let her go', s:'<span class="cost">−0.5 capability</span>', fx:s=>{bump(s,0,-0.5)}},
      {l:'Promote her deputy', s:'<span class="cost">−0.2 capability</span> · <span class="gain">+1 planning pick</span>',
-      fx:s=>{s.A[0].cap[s.era]=Math.max(0,s.A[0].cap[s.era]-0.2); s.genBonus+=1}}]},
+      fx:s=>{bump(s,0,-0.2); s.genBonus+=1}}]},
 
  {t:'Analysts want a bolder roadmap', d:'Commit publicly and the money follows. So does the expectation.',
   o:[{l:'Promise the aggressive roadmap', s:'<span class="gain">+2 planning picks</span> · <span class="risk">65% backlash</span>',
@@ -590,7 +590,7 @@ const SCEN=[
 
  {t:'A customer offers co-development', d:'They will pay for part of the work, and own part of the result.',
   o:[{l:'Sign it', s:'<span class="cost">−$400k</span> · <span class="gain">+0.8 next-era capability</span>',
-      fx:s=>{s.cash-=400; if(s.capTarget<NERA)s.A[0].cap[s.capTarget]+=0.8}},
+      fx:s=>{s.cash-=400; bump(s,s.capTarget-s.era,0.8)}},
      {l:'Stay independent', s:'<span class="gain">+$300k</span>', fx:s=>{s.cash+=300}}]},
 
  {t:'Quality incident at a major customer', d:'Three boards failed on their line. Nobody outside knows yet.',
@@ -617,7 +617,7 @@ const SCEN=[
   o:[{l:'Undercut them hard', s:'<span class="cost">−$600k</span> · <span class="gain">leader −30% rate</span>',
       fx:s=>{s.cash-=600; bestRival().rateMod*=0.70}},
      {l:'Hire out of their layoffs', s:'<span class="gain">+0.5 capability</span> · <span class="cost">−$450k</span>',
-      fx:s=>{s.cash-=450; s.A[0].cap[s.era]+=0.5}}]}];
+      fx:s=>{s.cash-=450; bump(s,0,0.5)}}]}];
 
 /* ================= STATE ================= */
 let S;
@@ -657,7 +657,8 @@ function drawLegend(){
 }
 const fitness=a=>0.35+0.30*a.cap[S.era];
 // horizon: 0 = this era, 1 = next, 2 = the era after next
-function bump(st,hz,amt,who){const t=st.era+hz; if(t<NERA)(who||st.A[0]).cap[t]+=amt}
+function bump(st,hz,amt,who){const t=st.era+hz; if(t>=NERA)return;
+  const a=who||st.A[0]; a.cap[t]=Math.max(0,Math.min(5,a.cap[t]+amt))}
 // capability reads as five stars, filled to the nearest quarter star.
 // drawn as inline SVG rather than the glyph, which is not in every font.
 // Stars are CSS-only on purpose. Inline SVG in the DOM breaks uBlock's content
@@ -710,10 +711,10 @@ function step(dt){
   const E=ERAS[S.era];
   const rd=dt*(TUNE.rd/E.dur);
   for(let i=0;i<S.A.length;i++){
-    const a=S.A[i], al=a.doc===null?0.4:a.doc;
+    const a=S.A[i], al=a.doc===null?0.5:a.doc;   // the player splits evenly by default
     const fund=i===0?0.45+0.55*Math.max(0,Math.min(1,S.cash/TUNE.cg)):1;
-    if(i>0){a.cap[S.era]=Math.min(5,a.cap[S.era]+rd*(1-al)*fund);
-            if(S.era+1<NERA)a.cap[S.era+1]=Math.min(5,a.cap[S.era+1]+rd*al*TUNE.nx*fund)}
+    a.cap[S.era]=Math.min(5,a.cap[S.era]+rd*(1-al)*fund);
+    if(S.era+1<NERA)a.cap[S.era+1]=Math.min(5,a.cap[S.era+1]+rd*al*TUNE.nx*fund);
   }
   S.cash-=dt*26*S.mnt;
   S.spawnT-=dt;
@@ -1186,16 +1187,20 @@ function hud(){
   setText('hCash',fmtC(S.cash));
   const cc=S.cash<0?'var(--rd)':'var(--gr)'; const ce=$('hCash');
   if(ce.__c!==cc){ce.__c=cc;ce.style.color=cc}
-  const me=shares().find(o=>o.i===0);
-  setText('hShare',Math.round(me.pc*100)+'%');
-  const sh=shares(); let acc=0, segs=[];
-  for(const o of sh){ if(o.n===0)continue;
-    const a=acc, b=acc+o.pc*100; acc=b;
+  const allSh=shares(), heldAll=allSh.reduce((t,o)=>t+o.n,0);
+  const me=allSh.find(o=>o.i===0);
+  const myShare=heldAll?me.n/heldAll:0;
+  setText('hShare',Math.round(myShare*100)+'%');
+  const sh=shares(); const held=sh.reduce((t,o)=>t+o.n,0);
+  let acc=0, segs=[];
+  if(held===0){segs.push('#141b21 0% 100%')}
+  else for(const o of sh){ if(o.n===0)continue;
+    const a=acc, b=acc+(o.n/held)*100; acc=b;
     segs.push(`${OWNC(o.i)} ${a.toFixed(1)}% ${b.toFixed(1)}%`); }
-  if(acc<99.9)segs.push(`#141b21 ${acc.toFixed(1)}% 100%`);
+  if(acc>0&&acc<100)segs[segs.length-1]=segs[segs.length-1].replace(/[\d.]+%$/,'100%');
   const pie='conic-gradient('+segs.join(',')+')';
   const pe=$('pie'); if(pe&&pe.__p!==pie){pe.__p=pie; pe.style.background=pie}
-  setW('bShare',(me.pc*100).toFixed(1)+'%');
+  setW('bShare',(myShare*100).toFixed(1)+'%');
   setText('hRep',Math.round(S.rep*100));
   setW('bRep',(S.rep*100).toFixed(1)+'%',S.rep<.4?'var(--rd)':S.rep<.7?'var(--am)':'var(--gr)');
   updateReadouts(); drawHand();
