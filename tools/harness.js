@@ -17,9 +17,18 @@ window.HARNESS = (function () {
   const POLICIES = {
     capability: ['node', 'rel', 'yield', 'fab'],   // always buy the coming era
     plant:      ['fab', 'yield', 'rel', 'node'],   // always buy throughput
-    economy:    ['grad', 'equity', 'buyback'],     // buy money and picks
+    economy:    ['grad', 'eq', 'bb'],              // buy money and picks
     spread:     null,                              // whatever fits, in listed order
   };
+
+  // A policy naming a pick that does not exist silently degrades into whatever
+  // the fallback order is, and then reports a number for a strategy nobody ran.
+  // This has already happened once; fail loudly instead.
+  for (const [name, ids] of Object.entries(POLICIES)) {
+    for (const id of ids || [])
+      if (!GEN.some(g => g.id === id))
+        throw new Error(`policy ${name} wants unknown pick '${id}'`);
+  }
 
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
