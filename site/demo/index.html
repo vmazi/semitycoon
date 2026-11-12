@@ -58,6 +58,29 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 .legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;
   vertical-align:-1px}
 
+.field{display:flex;gap:5px;margin-top:8px}
+.field div{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);
+  border-radius:7px;padding:5px 6px}
+.field .fn{font-family:var(--mono);font-size:8px;letter-spacing:.04em;color:var(--dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.field .fu{font-family:var(--mono);font-size:13px;color:var(--cy);line-height:1.3}
+.field .fb{height:3px;background:#0b1014;border-radius:2px;margin-top:3px;display:flex;overflow:hidden}
+.field .fb i{display:block;height:100%}
+.field .fr{font-family:var(--mono);font-size:8px;margin-top:3px;white-space:nowrap}
+.chain{margin-top:10px;background:var(--panel);border:1px solid var(--line);
+  border-radius:10px;padding:10px 8px;display:flex;align-items:stretch;gap:2px;overflow-x:auto;
+  scrollbar-width:none}
+.chain::-webkit-scrollbar{display:none}
+.chain .st{flex:1 1 0;min-width:0;text-align:center;padding:0 2px}
+.chain .st b{display:block;font-family:var(--mono);font-size:14px;line-height:1.2}
+.chain .st span{display:block;font-family:var(--mono);font-size:8px;letter-spacing:.04em;
+  color:var(--dim);text-transform:uppercase;margin-top:2px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.chain .st em{display:block;font-style:normal;font-family:var(--mono);font-size:8px;
+  color:var(--dim);margin-top:1px;white-space:nowrap}
+.chain .ar{flex:0 0 10px;display:flex;align-items:center;justify-content:center;
+  color:#2b3742;font-size:11px}
+.chain .st.src{border-bottom:2px solid transparent}
 .levers{margin-top:10px;background:var(--panel);border:1px solid var(--line);
   border-radius:10px;padding:11px 13px}
 .lev{margin-bottom:11px}
@@ -149,22 +172,25 @@ input[type=range]{width:100%;height:28px;margin:1px 0 0}
 
   <canvas id="cv" width="400" height="400"></canvas>
   <div class="legend" id="legend"></div>
+  <div class="field" id="field"></div>
+
+  <div class="chain" id="chain"></div>
 
   <div class="levers">
     <div class="lev">
       <div class="lh"><b>TEST COVERAGE</b><i id="vCov" style="color:#49c5dd">70%</i></div>
       <input type="range" id="cov" min="0" max="100" value="70">
-      <small>catches defects before they ship · costs money · <b>slows the line</b></small>
+      <small id="dCov">&nbsp;</small>
     </div>
     <div class="lev">
       <div class="lh"><b>MAINTENANCE</b><i id="vMnt" style="color:#62c98c">70%</i></div>
       <input type="range" id="mnt" min="0" max="100" value="70">
-      <small>fewer defects are born · constant cash drain</small>
+      <small id="dMnt">&nbsp;</small>
     </div>
     <div class="lev">
       <div class="lh"><b>OUTPUT RATE</b><i id="vRte" style="color:#f0a73d">1.0×</i></div>
       <input type="range" id="rte" min="60" max="170" value="100">
-      <small>more units shipped · pushing past 1.0× breeds defects</small>
+      <small id="dRte">&nbsp;</small>
     </div>
   </div>
 
@@ -233,7 +259,7 @@ function reset(){
      shipped:0,caught:0,escaped:0,fires:0,
      A:ROSTER.map(r=>({...r,cap:[2,0,0,0,0],pts:0,era:[]}))};
   for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)
-    S.dots.push({c,r,x:GX+c*DX,y:GY+r*DY,own:-1,bad:false,ign:0,burn:0,
+    S.dots.push({c,r,x:GX+c*DX,y:GY+r*DY,own:-1,bad:false,ign:0,burn:0,age:0,
                  seg:segOf(r),cov:0,fl:Math.random()*6.3});
   for(let i=0;i<22;i++){const d=S.dots[(Math.random()*S.dots.length)|0];
     if(d.own<0)d.own=1+((Math.random()*3)|0)}
@@ -312,10 +338,11 @@ function step(dt){
       let pool=S.dots.filter(d=>d.own<0);
       if(!pool.length||Math.random()>0.76)
         pool=S.dots.filter(d=>d.own>=0&&d.own!==i&&d.own!==BURN);
-      if(pool.length)pool[(Math.random()*pool.length)|0].own=i;
+      if(pool.length){const t=pool[(Math.random()*pool.length)|0];t.own=i;t.age=0}
     }
   }
   for(const d of S.dots){
+    if(d.own>=0&&d.own!==BURN)d.age+=dt;
     if(d.own===0&&d.bad&&d.ign>0&&S.t>=d.ign)ignite(d);
     if(d.burn>0)d.burn=Math.max(0,d.burn-dt*0.22);
   }
@@ -345,7 +372,7 @@ function shipOut(m){
 }
 function land(f){
   const d=f.tgt;
-  d.own=0; d.bad=f.bad; d.cov=f.cov;
+  d.own=0; d.bad=f.bad; d.cov=f.cov; d.age=0;
   d.ign=(f.bad&&Math.random()<0.55)? S.t+16+Math.random()*30 : 0;
 }
 function ignite(d){
@@ -356,7 +383,7 @@ function ignite(d){
   let lost=0;
   for(const o of S.dots)
     if(o.own===0&&Math.abs(o.c-d.c)<=2&&Math.abs(o.r-d.r)<=2&&Math.random()<0.5){
-      o.own=1+((Math.random()*3)|0); lost++}
+      o.own=1+((Math.random()*3)|0); o.age=0; lost++}
   log(`⚠ ${d.seg}: ${info.txt}. −$${info.cost}k`+(lost?`, ${lost} sockets lost`:'')+
       ` <span style="color:#6d7d8c">· coverage was ${Math.round(d.cov*100)}%</span>`,'fire');
 }
@@ -499,6 +526,21 @@ function hardReset(){reset();lev();showIntro();setPauseBtn()}
 /* ================= DRAW ================= */
 function rr(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);
   cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath()}
+// each segment is a different physical product, so it gets a different silhouette
+function drawProduct(x,y,s,seg,empty){
+  const h=s/2;
+  if(empty){cx.fillRect(x-h,y-h,s,s);return}
+  if(seg==='CONSUMER'){cx.fillRect(x-h,y-h,s,s)}
+  else if(seg==='AUTOMOTIVE'){                        // a low wide body
+    cx.fillRect(x-h,y-h*0.62,s,s*0.62);
+    cx.fillRect(x-h*0.5,y-h,s*0.5,h*0.62);
+  } else if(seg==='DATACENTER'){                      // a rack
+    cx.fillRect(x-h*0.68,y-h,s*0.68,s);
+  } else {                                            // grid: a pylon
+    cx.beginPath();cx.moveTo(x,y-h);cx.lineTo(x+h,y+h);cx.lineTo(x-h,y+h);
+    cx.closePath();cx.fill();
+  }
+}
 const OWNC=i=>i===0?'#49c5dd':i===1?'#e2706b':i===2?'#a98ae0':i===3?'#8d98a4':'#4a241f';
 function draw(){
   cx.clearRect(0,0,W,H);
@@ -544,8 +586,9 @@ function draw(){
     cx.fillText(s[0],392,GY+((s[1]+s[2])/2)*DY+3)});
   for(const d of S.dots){
     cx.fillStyle=d.own<0?'#141b21':OWNC(d.own);
-    const s=d.own<0?5:8;
-    cx.fillRect(d.x-s/2,d.y-s/2,s,s);
+    const mat=Math.min(1,d.age/7);                   // installed base builds up over time
+    const s=d.own<0?4:5.5+4*mat;
+    drawProduct(d.x,d.y,s,d.seg,d.own<0);
     if(d.own===0&&d.bad){
       const f=.55+.45*Math.sin(S.t*3+d.fl);
       cx.fillStyle='rgba(240,167,61,'+(0.45*f).toFixed(2)+')';
@@ -585,11 +628,65 @@ function hud(){
   const f=S.A[0].cap[S.era];
   $('hFit').textContent=f.toFixed(1);
   $('bFit').style.width=(f/5*100)+'%';
+  updateReadouts();
   $('score').innerHTML=S.A.map(a=>`<div>
     <span style="color:${a.c}">${a.n}</span>
     <b style="color:${a.c}">${a.pts}</b>
     <em>${a.cap[S.era].toFixed(1)} fit</em></div>`).join('');
 }
+
+/* ---- the causal chain, in live numbers, so the sliders stop being abstract ---- */
+const UNITS={CONSUMER:180,AUTOMOTIVE:40,DATACENTER:12,'GRID / INDUSTRIAL':25}; // k per mature socket
+function fmtU(k){return k>=1000?(k/1000).toFixed(1)+'M':Math.round(k)+'k'}
+function derive(){
+  const spawn=S.rte/0.52;
+  const pDef=Math.min(.75,0.015+0.38*(1-S.mnt)+0.32*Math.max(0,S.rte-1));
+  const catchR=S.cov*0.95;
+  const thr=1/(0.18+0.42*S.cov);
+  return {spawn,pDef,catchR,thr,backing:spawn>thr,
+          escPerSec:spawn*pDef*(1-catchR),
+          testCost:0.5+7*S.cov, mntCost:26*S.mnt};
+}
+function updateReadouts(){
+  const D=derive();
+  $('dCov').innerHTML=`catches <b style="color:var(--cy)">${Math.round(D.catchR*100)}%</b> of defects `+
+    `· $${D.testCost.toFixed(1)}/unit · `+
+    (D.backing?'<b style="color:var(--rd)">LINE BACKING UP</b>':'line keeps up');
+  $('dMnt').innerHTML=`<b style="color:${D.pDef>.3?'var(--rd)':D.pDef>.15?'var(--am)':'var(--gr)'}">`+
+    `${Math.round(D.pDef*100)}%</b> of units born defective · $${Math.round(D.mntCost)}/sec`;
+  $('dRte').innerHTML=`<b style="color:var(--am)">${D.spawn.toFixed(1)}</b> units/sec`+
+    (S.rte>1?` · <b style="color:var(--rd)">+${Math.round(0.32*(S.rte-1)*100)}%</b> defect rate`:' · no defect penalty');
+
+  const st=[
+    ['#f0a73d',D.spawn.toFixed(1),'starting','units / sec'],
+    [D.pDef>.3?'#e2706b':D.pDef>.15?'#f0a73d':'#62c98c',Math.round(D.pDef*100)+'%','born bad','maintenance'],
+    ['#49c5dd',Math.round(D.catchR*100)+'%','caught','coverage'],
+    [D.escPerSec>.25?'#e2706b':D.escPerSec>.08?'#f0a73d':'#62c98c',D.escPerSec.toFixed(2),'escaping /s','into the world'],
+    [S.fires?'#e2706b':'#62c98c',S.fires,'field failures','so far']];
+  $('chain').innerHTML=st.map((x,i)=>
+    `<div class="st"><b style="color:${x[0]}">${x[1]}</b><span>${x[2]}</span><em>${x[3]}</em></div>`
+    +(i<st.length-1?'<div class="ar">›</div>':'')).join('');
+
+  // what is actually out there in the field, by product
+  $('field').innerHTML=SEG.map(sg=>{
+    const name=sg[0], per=UNITS[name];
+    let mine=0,tot=0,latent=0,own=[0,0,0,0];
+    for(const d of S.dots){
+      if(d.r<sg[1]||d.r>sg[2])continue;
+      if(d.own<0||d.own===BURN)continue;
+      const m=Math.min(1,d.age/7);
+      tot+=m; own[d.own]+=m;
+      if(d.own===0){mine+=m*per; if(d.bad)latent+=m*per}
+    }
+    const bars=own.map((v,i)=>v>0?`<i style="width:${(v/(tot||1)*100).toFixed(1)}%;background:${OWNC(i)}"></i>`:'').join('');
+    return `<div><div class="fn">${name.split(' ')[0]}</div>
+      <div class="fu">${fmtU(mine)}</div>
+      <div class="fb">${bars}</div>
+      <div class="fr" style="color:${latent>0?'var(--am)':'var(--dim)'}">${
+        latent>0?'⚠ '+fmtU(latent)+' at risk':'clean'}</div></div>`;
+  }).join('');
+}
+
 let last=performance.now();
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000); last=now;
