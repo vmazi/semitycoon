@@ -125,11 +125,11 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 .meters b{font-family:var(--mono);font-size:15px}
 .st5{position:relative;display:inline-block;white-space:nowrap;vertical-align:-1px;
   overflow:hidden;line-height:0}
-.st5 i{display:inline-block;background:#2b3644;
+.st5 i{display:inline-block;background:#1b222a;opacity:.85;
   -webkit-clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
   clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
 .st5 .sf{position:absolute;left:0;top:0;height:100%;overflow:hidden;white-space:nowrap;line-height:0}
-.st5 .sf i{background:#a98ae0}
+.st5 .sf i{background:#b89bea;opacity:1}
 
 .execfx{font-family:var(--mono);font-size:9.5px;color:var(--mut);margin-bottom:9px}
 .execfx b{color:var(--tx)}
@@ -207,7 +207,7 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 
 <div class="top">
   <a href="../design/">← design</a><a href="../mockups/">mockups</a>
-  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b10</span></h1>
+  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b11</span></h1>
 </div>
 
 <div class="wrap">
@@ -573,13 +573,13 @@ function reset(){
      motes:[],flights:[],dots:[],blooms:[],log:[],
      spawnT:0,testBusy:0,testQ:[],rivalT:0,
      shipped:0,caught:0,escaped:0,fires:0,
-     A:ROSTER.map(r=>({...r,cap:[2,0,0,0,0],pts:0,era:[],rateMod:1}))};
+     A:ROSTER.map(r=>({...r,cap:[2.5,0,0,0,0],pts:0,era:[],rateMod:1}))};
   for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)
     S.dots.push({c,r,x:GX+c*DX,y:GY+r*DY,own:-1,bad:false,ign:0,burn:0,age:0,
                  seg:segOf(r),cov:0,fl:Math.random()*6.3});
   for(let i=0;i<22;i++){const d=S.dots[(Math.random()*S.dots.length)|0];
     if(d.own<0)d.own=1+((Math.random()*3)|0)}
-  S.log=[]; log('The Mainframe era begins. Everyone starts at '+starsPlain(2)+' reliability.','era');
+  S.log=[]; log('The Mainframe era begins. Everyone starts at '+starsPlain(2.5)+' reliability \u2014 your founding picks move you off it.','era');
   deal(); drawLegend(); drawActions();
 }
 function log(m,cls){
@@ -600,7 +600,7 @@ const fitness=a=>0.35+0.30*a.cap[S.era];
 // script (an SVG element's className is an SVGAnimatedString, not a string), which
 // wedges Orion's extension bridge and takes page interaction down with it.
 function stars(v,size){
-  const z=size||10, q=Math.max(0,Math.min(5,Math.round(v*4)/4));
+  const z=size||12, q=Math.max(0,Math.min(5,Math.round(v*4)/4));
   const cell=`<i style="width:${z}px;height:${z}px"></i>`.repeat(5);
   return `<span class="st5" style="width:${z*5}px;height:${z}px">`+
     `<span class="sf" style="width:${(q/5*100).toFixed(1)}%">${cell}</span>${cell}</span>`;
@@ -1122,7 +1122,7 @@ function hud(){
   setHTML('score',S.A.map(a=>`<div><span style="color:${a.c}">${a.n}</span>
     <b style="color:${a.c}">${a.pts}</b>
     <em>${(a===S.A[0]?R.you:R.riv[S.A.indexOf(a)-1]).toFixed(2)}/s</em>
-    <em>${stars(a.cap[S.era],9)}</em></div>`).join(''));
+    <em>${stars(a.cap[S.era],11)}</em></div>`).join(''));
 }
 let hudLast=0;
 let last=performance.now();
