@@ -262,7 +262,7 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 
 <div class="top">
   <a href="../design/">← design</a><a href="../mockups/">mockups</a>
-  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b22</span></h1>
+  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b24</span></h1>
 </div>
 
 <div class="wrap">
@@ -521,13 +521,51 @@ function redeal(){
   S.deck.unshift(...S.hand); deal();
 }
 function playCard(i){
-  if(S.phase!=='play'||S.execPlays<=0)return;
+  if((S.phase!=='play'&&S.phase!=='exec')||S.execPlays<=0)return;
   const c=EXEC[S.hand[i]];
   const before=S.burn;
   c.fx(S);
   S.burn=before+(S.burn-before)*(S.burn>before?S.burnMod:1);  // chief of staff softens the hits
   clampLevers(); S.execPlays--;
   deal(); drawActions();
+}
+function openExecModal(){
+  if(S.phase==='done')return;
+  S.phase='exec'; S.run=false;
+  renderExec();
+  $('over').style.display='block'; $('over').scrollTop=0;
+}
+function renderExec(){
+  const cards=S.hand.map((ix,i)=>{const c=EXEC[ix];
+    return `<button data-act="execPick" data-arg="${i}" ${S.execPlays>0?'':'disabled'}>
+      <b>${c.l}</b><small>${c.s}</small></button>`}).join('');
+  $('ocard').innerHTML=`
+    <div class="sub">${ERAS[S.era].n} era · executive focus</div>
+    <h2>How are you going to spend yourself?</h2>
+    <p>Two plays this era. These cost you personally, not the company —
+       <b style="color:var(--tx)">burnout at 100 ends the run</b>, and contention
+       raises your defect rate and eats planning picks.</p>
+    <div style="display:flex;gap:9px;margin:12px 0 4px">
+      <div style="flex:1"><span style="font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;color:var(--dim)">BURNOUT</span>
+        <div style="font-family:var(--mono);font-size:16px;color:${S.burn>.75?'var(--rd)':S.burn>.45?'var(--am)':'var(--gr)'}">${Math.round(S.burn*100)}</div></div>
+      <div style="flex:1"><span style="font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;color:var(--dim)">CONTENTION</span>
+        <div style="font-family:var(--mono);font-size:16px;color:${S.cont>.6?'var(--rd)':S.cont>.35?'var(--am)':'var(--gr)'}">${Math.round(S.cont*100)}</div></div>
+      <div style="flex:1"><span style="font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;color:var(--dim)">PLAYS LEFT</span>
+        <div style="font-family:var(--mono);font-size:16px;color:var(--vi)">${S.execPlays}</div></div>
+    </div>
+    <div class="opts">${cards}</div>
+    <button class="redeal" style="margin-top:9px" data-act="execRedeal">Ask for different cards &nbsp;·&nbsp; +4 burnout</button>
+    <button class="obtn" data-act="execClose">${S.execPlays>0?'Skip for now':'Done'}</button>`;
+}
+function execPick(i){
+  if(S.execPlays<=0)return;
+  playCard(i);
+  if(S.phase==='exec')renderExec();
+}
+function execRedeal(){ redeal(); if(S.phase==='exec')renderExec() }
+function execClose(){
+  $('over').style.display='none';
+  S.phase='play'; S.run=false; setPauseBtn(); drawActions(); drawHand();
 }
 function drawHand(){
   const h=$('hand'); if(!h)return;
@@ -684,6 +722,7 @@ function reset(){
      motes:[],flights:[],dots:[],blooms:[],log:[],
      spawnT:0,testBusy:0,testQ:[],rivalT:0,
      shipped:0,caught:0,escaped:0,fires:0,
+     eraFires:0,eraLost:0,eraShipped:0,eraCaught:0,eraEscaped:0,
      A:ROSTER.map(r=>({...r,cap:[2.5,0,0,0,0],pts:0,era:[],rateMod:1}))};
   for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)
     S.dots.push({c,r,x:GX+c*DX,y:GY+r*DY,own:-1,bad:false,ign:0,burn:0,age:0,
@@ -792,10 +831,10 @@ function step(dt){
     S.testBusy=(S.testFast?0.20:0.18+0.42*S.cov)/Math.max(0.6,S.rte);
     S.cash-=0.5+7*S.cov;
     if(m.bad&&Math.random()<S.cov*0.95){
-      S.caught++; S.cash-=12;
+      S.caught++; S.eraCaught++; S.cash-=12;
       S.blooms.push({x:NODE[1].x,y:NODE[1].y,a:1,r:4,kind:'catch'});
       const k=S.motes.indexOf(m); if(k>=0)S.motes.splice(k,1);
-    } else {m.hold=false;m.seg=1;m.p=0; if(m.bad)S.escaped++}
+    } else {m.hold=false;m.seg=1;m.p=0; if(m.bad){S.escaped++;S.eraEscaped++}}
   }
   for(let i=S.flights.length-1;i>=0;i--){
     const f=S.flights[i]; f.p+=dt*0.95;
@@ -843,7 +882,7 @@ function step(dt){
 }
 function shipOut(m){
   const f=fitness(S.A[0]);
-  S.cash+=(TUNE.shipBase+TUNE.shipCap*f)*S.revMod; S.shipped++;
+  S.cash+=(TUNE.shipBase+TUNE.shipCap*f)*S.revMod; S.shipped++; S.eraShipped++;
   if(Math.random()>TUNE.fb+TUNE.fc*S.A[0].cap[S.era])return;
   let pool=S.dots.filter(d=>d.own<0);
   if(!pool.length||Math.random()>0.70){
@@ -861,12 +900,12 @@ function land(f){const d=f.tgt;
 function ignite(d){
   const info=SEGINFO[d.seg];
   d.bad=false; d.ign=0; d.burn=1; d.own=BURN;
-  S.fires++; S.cash-=info.cost; S.rep=Math.max(0,S.rep-info.rep);
+  S.fires++; S.eraFires++; S.cash-=info.cost; S.rep=Math.max(0,S.rep-info.rep);
   S.blooms.push({x:d.x,y:d.y,a:1,r:3,kind:'fire'});
   let lost=0;
   for(const o of S.dots)
     if(o.own===0&&Math.abs(o.c-d.c)<=2&&Math.abs(o.r-d.r)<=2&&Math.random()<0.5){
-      o.own=1+((Math.random()*3)|0); o.age=0; lost++}
+      o.own=1+((Math.random()*3)|0); o.age=0; lost++; S.eraLost++}
   log(`⚠ ${d.seg}: ${info.txt}. −$${info.cost}k`+(lost?`, ${lost} sockets lost`:'')+
       ` <span style="color:#6d7d8c">· coverage was ${Math.round(d.cov*100)}%</span>`,'fire');
 }
@@ -961,6 +1000,7 @@ function endEra(){
 function beginNextEra(){
   S.era++; S.eraT=0; S.qInEra=0; S.phase='play'; S.run=false;
   S.usedThisEra={}; S.testFast=false; S.reorgDef=0; S.hiringStall=false;
+  S.eraFires=0; S.eraLost=0; S.eraShipped=0; S.eraCaught=0; S.eraEscaped=0;
   S.poachProof=false; S.execPlays=2; deal();
   S.cov=S.baseCov; S.mnt=S.baseMnt; S.rte=S.baseRte; clampLevers();
   for(let i=1;i<S.A.length;i++)S.A[i].rateMod=1;
@@ -972,9 +1012,53 @@ function beginNextEra(){
   S.motes=[];S.flights=[];S.testQ=[];S.blooms=[];
   log(`The ${ERAS[S.era].n} era begins — won on ${ERAS[S.era].cap}. You arrive at ${starsPlain(S.A[0].cap[S.era])}.`,'era');
   $('over').style.display='none'; setPauseBtn(); drawActions(); drawHand();
+  openExecModal();
 }
 
 /* ================= OVERLAYS ================= */
+// Why the era went the way it did, in concrete numbers rather than a verdict.
+function eraBreakdown(st){
+  const me=st.find(o=>o.i===0), win=st[0], iWon=win.i===0;
+  const avgVal=o=>o.raw>0?o.n/o.raw:0;
+  const rows=[];
+  const R=claimRates();
+  const push=(ok,label,mine,theirs)=>rows.push({ok,label,mine,theirs});
+
+  push(iWon,'Market held, by value',
+    (me.pc*100).toFixed(0)+'%', (win.pc*100).toFixed(0)+'%');
+  push(me.raw>=win.raw,'Sockets held', me.raw, win.raw);
+  push(R.you>=R.riv[win.i-1]||win.i===0,'Sockets won per second',
+    R.you.toFixed(2), win.i===0?'—':R.riv[win.i-1].toFixed(2));
+  push(avgVal(me)>=avgVal(win),'Average value per socket',
+    avgVal(me).toFixed(2), avgVal(win).toFixed(2));
+  push(S.A[0].cap[S.era]>=win.a.cap[S.era],'Capability, of 5',
+    S.A[0].cap[S.era].toFixed(1), win.a.cap[S.era].toFixed(1));
+  push(S.eraFires===0,'Field failures this era',
+    S.eraFires+(S.eraLost?' ('+S.eraLost+' sockets lost)':''), '—');
+
+  // the single sentence that explains the result
+  let verdict;
+  if(iWon) verdict='You won it on '+(avgVal(me)>avgVal(st[1])?'margin — you held the <b>more valuable</b> sockets'
+    :'volume — you simply held <b>more</b> of them');
+  else if(me.raw>win.raw) verdict='You held <b>more sockets than '+win.a.n+'</b> but they were worth less: '+
+    avgVal(me).toFixed(2)+' against '+avgVal(win).toFixed(2)+' each. Volume in cheap segments does not win an era.';
+  else if(S.A[0].cap[S.era]<win.a.cap[S.era]-0.4) verdict=win.a.n+' was <b>better suited to this era</b> — '+
+    win.a.cap[S.era].toFixed(1)+' stars against your '+S.A[0].cap[S.era].toFixed(1)+'. That was decided last era, not this one.';
+  else if(S.eraFires>1) verdict='Close on capability, but <b>'+S.eraFires+' field failures</b> cost you '+
+    S.eraLost+' sockets. Quality was the difference.';
+  else verdict=win.a.n+' simply took sockets faster. Your line ran at <b>'+R.ship.toFixed(1)+'/s</b>.';
+
+  return `<div class="bd">
+    <div class="bdh">Why ${iWon?'you won':win.a.n+' won'}</div>
+    ${rows.map(r=>`<div class="bdr">
+      <span class="bi" style="color:${r.ok?'var(--gr)':'var(--rd)'}">${r.ok?'▲':'▼'}</span>
+      <span class="bl">${r.label}</span>
+      <span class="bm" style="color:${r.ok?'var(--gr)':'var(--rd)'}">${r.mine}</span>
+      <span class="bt">${r.theirs}</span></div>`).join('')}
+    <div class="bdv">${verdict}</div>
+    <div class="bdf">you &nbsp;/&nbsp; ${iWon?'runner-up '+st[1].a.n:win.a.n}</div>
+  </div>`;
+}
 function standRows(st){
   return '<div class="stand">'+st.map((o,k)=>`<div>
     <span class="pos">${k+1}</span><span class="nm" style="color:${o.a.c}">${o.a.n}</span>
@@ -996,6 +1080,7 @@ function showGen(st,place,founding){
     :`<div class="sub">${ERAS[S.era].n} era · final standings</div>
     <h2>${st[0].i===0?'You won the era.':st[0].a.n+' won the era.'}</h2>
     ${standRows(st)}
+    ${eraBreakdown(st)}
     <div style="margin-top:11px;font-family:var(--mono);font-size:10.5px;color:var(--mut)">
       RUNNING TOTAL — ${[...S.A].sort((a,b)=>b.pts-a.pts)
         .map(a=>`<span style="color:${a.c}">${a.n} ${a.pts}</span>`).join(' · ')}</div>`}
@@ -1047,6 +1132,7 @@ function commitGen(){
     S.cov=S.baseCov; S.mnt=S.baseMnt; S.rte=S.baseRte; clampLevers();
     S.qInEra=0; S.phase='play'; S.run=false;
     $('over').style.display='none'; setPauseBtn(); drawActions();
+    openExecModal();
     return;
   }
   beginNextEra();
@@ -1402,7 +1488,7 @@ $('bReset').onclick=hardReset;
 
 // one delegated listener: inline handlers can be blocked by an extension or CSP
 const ACTS={startPlay,commitGen,togglePick,pickScen,playCard,doAct,redeal,hardReset,
-            tutStart,tutNext,tutBack,tutSkip};
+            tutStart,tutNext,tutBack,tutSkip,execPick,execRedeal,execClose};
 document.addEventListener('click',e=>{
   const el=e.target&&e.target.closest?e.target.closest('[data-act]'):null;
   if(!el)return;
