@@ -197,9 +197,13 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 </head>
 <body>
 
+<div id="errbar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99;
+  background:#5f1f1f;color:#ffd9d6;font-family:ui-monospace,monospace;font-size:11px;
+  padding:8px 10px;line-height:1.4"></div>
+
 <div class="top">
   <a href="../design/">← design</a><a href="../mockups/">mockups</a>
-  <div class="sp"></div><h1>FIVE ERAS</h1>
+  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b8</span></h1>
 </div>
 
 <div class="wrap">
@@ -263,7 +267,7 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
     </div>
     <div class="execfx" id="execFx"></div>
     <div class="hand" id="hand"></div>
-    <button class="redeal" onclick="redeal()">Ask for different cards &nbsp;·&nbsp; +4 burnout</button>
+    <button class="redeal" data-act="redeal">Ask for different cards &nbsp;·&nbsp; +4 burnout</button>
   </div>
 
   <div class="log" id="log"></div>
@@ -278,6 +282,9 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
+function showErr(m){const b=$('errbar'); if(!b)return;
+  b.style.display='block'; b.textContent='\u26a0 '+m;}
+window.onerror=function(m,u,l,c){showErr(m+'  (line '+l+':'+c+')');};
 const cv=$('cv'), cx=cv.getContext('2d'); const W=400,H=400;
 function fit(){const d=window.devicePixelRatio||1,w=cv.clientWidth;
   cv.width=w*d;cv.height=w*d;cx.setTransform(d*w/W,0,0,d*w/W,0,0)}
@@ -426,7 +433,7 @@ function playCard(i){
 function drawHand(){
   const h=$('hand'); if(!h)return;
   h.innerHTML=S.hand.map((ix,i)=>{const c=EXEC[ix];
-    return `<button onclick="playCard(${i})" ${S.execPlays>0&&S.phase==='play'?'':'disabled'}>
+    return `<button data-act="playCard" data-arg="${i}" ${S.execPlays>0&&S.phase==='play'?'':'disabled'}>
       <b>${c.l}</b><small>${c.s}</small></button>`}).join('');
   $('execPlays').textContent=S.execPlays;
   const bb=$('bBurn'), bc=$('bCont');
@@ -742,7 +749,7 @@ function openScenario(){
     (sc.w?' · <span style="color:var(--rd)">industry-wide</span>':'')+`</div>
     <h2>${sc.t}</h2><p>${sc.d}</p>
     <div class="opts">${sc.o.map((o,i)=>
-      `<button onclick="pickScen(${i})"><b>${o.l}</b><small>${o.s}</small></button>`).join('')}</div>`;
+      `<button data-act="pickScen" data-arg="${i}"><b>${o.l}</b><small>${o.s}</small></button>`).join('')}</div>`;
   $('over').style.display='block'; $('over').scrollTop=0;
   window.__scen=sc;
 }
@@ -762,7 +769,7 @@ function drawActions(){
     const used=S.usedThisEra[a.id];
     const locked=(a.need&&!S.unlock[a.need])||(S.hiringStall&&(a.id==='poa'));
     const can=!used&&!locked&&S.cash>=cost&&S.phase==='play';
-    return `<button ${can?'':'disabled'} class="${used?'used':''}" onclick="doAct('${a.id}')">
+    return `<button ${can?'':'disabled'} class="${used?'used':''}" data-act="doAct" data-arg="${a.id}">
       <b>${a.l}</b><span>${fmtC(-cost)}</span>
       <small>${locked?(S.hiringStall&&a.id==='poa'?'hiring stalled by your sabbatical':'needs: raise equity'):used?'already used this era':a.s}</small></button>`;
   }).join('');
@@ -822,6 +829,7 @@ function standRows(st){
 
 let GPICK=[];
 function showGen(st,place,founding){
+  try{
   GPICK=[];
   S.capTarget=founding?0:S.era+1;
   const nx=founding?ERAS[0]:ERAS[S.era+1];
@@ -850,13 +858,14 @@ function showGen(st,place,founding){
           :'placed #'+(place+1)+' · '+S.adhocCount+' ad-hoc'+(S.contPenalty?' · <span style="color:var(--rd)">−'+S.contPenalty+' to contention</span>':'')}</span></div>
       ${groups.map(g=>`<div class="gengrp"><h4>${g}</h4>
         ${GEN.filter(x=>x.g===g).map(x=>
-          `<div class="gp" id="gp_${x.id}" onclick="togglePick('${x.id}')">
+          `<div class="gp" id="gp_${x.id}" data-act="togglePick" data-arg="${x.id}">
             <span class="pk">${x.k}</span>
             <span class="gt">${x.l}<small>${x.s}</small></span></div>`).join('')}</div>`).join('')}
     </div>
-    <button class="obtn" id="gGo" onclick="commitGen()">Begin the ${nx.n} era</button>`;
+    <button class="obtn" id="gGo" data-act="commitGen">Begin the ${nx.n} era</button>`;
   $('over').style.display='block'; $('over').scrollTop=0;
   updateGen();
+  }catch(err){ showErr('planning screen: '+err.message) }
 }
 function spent(){return GPICK.reduce((a,id)=>a+GEN.find(g=>g.id===id).k,0)}
 function togglePick(id){
@@ -903,7 +912,7 @@ function showFinal(){
     <div style="margin-top:13px;font-family:var(--mono);font-size:11px;color:var(--mut);line-height:1.9">
       shipped ${S.shipped} · caught ${S.caught} · escaped ${S.escaped}<br>
       field failures ${S.fires} · ad-hoc actions ${S.adhocCount} · capital ${fmtC(S.cash)}</div>
-    <button class="obtn" onclick="hardReset()">Run it again</button>`;
+    <button class="obtn" data-act="hardReset">Run it again</button>`;
   $('over').style.display='block'; $('over').scrollTop=0;
 }
 function finish(t,p){
@@ -913,7 +922,7 @@ function finish(t,p){
     <div style="font-family:var(--mono);font-size:11px;color:var(--mut);line-height:1.9">
       eras survived ${S.era} of ${NERA} · points ${S.A[0].pts}<br>
       shipped ${S.shipped} · escaped ${S.escaped} · field failures ${S.fires}</div>
-    <button class="obtn" onclick="hardReset()">Run it again</button>`;
+    <button class="obtn" data-act="hardReset">Run it again</button>`;
   $('over').style.display='block'; $('over').scrollTop=0;
 }
 function showIntro(){
@@ -933,7 +942,7 @@ function showIntro(){
     <div style="margin-top:12px;padding-top:11px;border-top:1px solid var(--line)">
     ${S.A.slice(1).map(a=>`<div style="font-family:var(--mono);font-size:11px;padding:3px 0;color:var(--mut)">
       <span style="color:${a.c}">${a.n}</span> — ${a.bio}</div>`).join('')}</div>
-    <button class="obtn" onclick="startPlay()">Begin the Mainframe era</button>`;
+    <button class="obtn" data-act="startPlay">Begin the Mainframe era</button>`;
   $('over').style.display='block'; $('over').scrollTop=0;
 }
 function startPlay(){S.genBudget=3;showGen(null,0,true)}
@@ -1103,8 +1112,11 @@ function hud(){
 let last=performance.now();
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000); last=now;
-  if(S.run&&S.phase==='play')for(let i=0;i<S.speed&&S.run&&S.phase==='play';i++)step(dt);
-  draw(); hud(); requestAnimationFrame(frame);
+  try{
+    if(S.run&&S.phase==='play')for(let i=0;i<S.speed&&S.run&&S.phase==='play';i++)step(dt);
+    draw(); hud();
+  }catch(err){ showErr('frame: '+err.message) }
+  requestAnimationFrame(frame);          // never let one bad frame stop the loop
 }
 
 /* ================= CONTROLS ================= */
@@ -1115,6 +1127,16 @@ function spd(v,el){S.speed=v;['b1','b3'].forEach(id=>$(id).classList.toggle('on'
 $('b1').onclick=()=>spd(1,'b1'); $('b3').onclick=()=>spd(3,'b3');
 $('bReset').onclick=hardReset;
 
+// one delegated listener: inline handlers can be blocked by an extension or CSP
+const ACTS={startPlay,commitGen,togglePick,pickScen,playCard,doAct,redeal,hardReset};
+document.addEventListener('click',e=>{
+  const el=e.target&&e.target.closest?e.target.closest('[data-act]'):null;
+  if(!el)return;
+  const fn=ACTS[el.getAttribute('data-act')]; if(!fn)return;
+  const raw=el.getAttribute('data-arg');
+  try{ fn(raw===null?undefined:(raw!==''&&!isNaN(+raw)?+raw:raw)) }
+  catch(err){ showErr('click '+el.getAttribute('data-act')+': '+err.message) }
+});
 fit(); reset(); showIntro(); setPauseBtn(); requestAnimationFrame(frame);
 </script>
 </body>
