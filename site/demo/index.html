@@ -262,7 +262,7 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 
 <div class="top">
   <a href="../design/">← design</a><a href="../mockups/">mockups</a>
-  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b21</span></h1>
+  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b22</span></h1>
 </div>
 
 <div class="wrap">
@@ -422,7 +422,8 @@ const ROSTER=[
  {n:'KAITO',    c:'#a98ae0', doc:0.80, bio:'always builds for next'},
  {n:'MERIDIAN', c:'#8d98a4', doc:0.45, bio:'splits evenly, every time'}];
 const BURN=9;
-const TUNE={rb:0.16,rc:0.07,fb:0.35,fc:0.12,cv:0.55,rd:3.2,nx:1.0,cg:3000};
+const TUNE={rb:0.22,rc:0.095,fb:0.35,fc:0.12,cv:0.55,rd:3.2,nx:1.0,cg:3000,
+            shipBase:44,shipCap:6,holdRev:5.0};
 const NODE=[{n:'FAB',x:52,y:54},{n:'TEST',x:148,y:54},{n:'PACK',x:244,y:54},{n:'SHIP',x:340,y:54}];
 const NW=58,NH=28;
 
@@ -764,6 +765,10 @@ function step(dt){
     a.cap[S.era]=Math.min(5,a.cap[S.era]+rd*(1-al)*fund);
     if(S.era+1<NERA)a.cap[S.era+1]=Math.min(5,a.cap[S.era+1]+rd*al*TUNE.nx*fund);
   }
+  // the installed base earns according to what it is worth, not how clever you are
+  let hv=0;
+  for(const d of S.dots)if(d.own===0)hv+=SEGVAL[d.seg]*Math.min(1,d.age/7);
+  S.cash+=dt*hv*TUNE.holdRev*S.revMod;
   S.cash-=dt*26*S.mnt;
   S.spawnT-=dt;
   if(S.spawnT<=0){
@@ -784,7 +789,7 @@ function step(dt){
   S.testBusy-=dt;
   if(S.testBusy<=0&&S.testQ.length){
     const m=S.testQ.shift();
-    S.testBusy=S.testFast?0.20:0.18+0.42*S.cov;
+    S.testBusy=(S.testFast?0.20:0.18+0.42*S.cov)/Math.max(0.6,S.rte);
     S.cash-=0.5+7*S.cov;
     if(m.bad&&Math.random()<S.cov*0.95){
       S.caught++; S.cash-=12;
@@ -838,7 +843,7 @@ function step(dt){
 }
 function shipOut(m){
   const f=fitness(S.A[0]);
-  S.cash+=(30+30*f)*S.revMod; S.shipped++;
+  S.cash+=(TUNE.shipBase+TUNE.shipCap*f)*S.revMod; S.shipped++;
   if(Math.random()>TUNE.fb+TUNE.fc*S.A[0].cap[S.era])return;
   let pool=S.dots.filter(d=>d.own<0);
   if(!pool.length||Math.random()>0.70){
@@ -1192,7 +1197,7 @@ function derive(){
   const spawn=S.rte/0.52;
   const pDef=Math.min(.75,0.015+0.38*(1-S.mnt)+0.32*Math.max(0,S.rte-1));
   const catchR=S.cov*0.95;
-  const thr=1/(S.testFast?0.20:0.18+0.42*S.cov);
+  const thr=Math.max(0.6,S.rte)/(S.testFast?0.20:0.18+0.42*S.cov);
   return {spawn,pDef,catchR,thr,backing:spawn>thr,
           escPerSec:spawn*pDef*(1-catchR),testCost:0.5+7*S.cov,mntCost:26*S.mnt};
 }
