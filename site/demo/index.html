@@ -74,6 +74,7 @@ input[type=range]{width:100%;height:28px;margin:1px 0 0}
 .ctl button{flex:1;font-family:var(--mono);font-size:11px;padding:9px 4px;border-radius:7px;
   border:1px solid var(--line);background:var(--panel2);color:var(--tx);cursor:pointer}
 .ctl button.on{background:var(--cy);border-color:var(--cy);color:#06181d;font-weight:700}
+.ctl button.go{background:var(--gr);border-color:var(--gr);color:#062015;font-weight:700}
 
 .log{margin-top:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;
   padding:9px 11px;height:124px;overflow-y:auto;font-family:var(--mono);font-size:10.5px;line-height:1.6}
@@ -121,6 +122,13 @@ input[type=range]{width:100%;height:28px;margin:1px 0 0}
 </div>
 
 <div class="wrap">
+  <div class="ctl">
+    <button id="bPause">❚❚ Pause</button>
+    <button id="b1" class="on">1×</button>
+    <button id="b3">3×</button>
+    <button id="bReset">Restart</button>
+  </div>
+
   <div class="erabar">
     <div class="erah"><b id="eName">MAINFRAME</b><span class="yr" id="eYears">1965–1980</span>
       <span class="sp"></span><span class="wins" id="eWins">wins on RELIABILITY</span></div>
@@ -158,13 +166,6 @@ input[type=range]{width:100%;height:28px;margin:1px 0 0}
       <input type="range" id="rte" min="60" max="170" value="100">
       <small>more units shipped · pushing past 1.0× breeds defects</small>
     </div>
-  </div>
-
-  <div class="ctl">
-    <button id="bPause">❚❚ Pause</button>
-    <button id="b1" class="on">1×</button>
-    <button id="b3">3×</button>
-    <button id="bReset">↻ Restart</button>
   </div>
 
   <div class="log" id="log"></div>
@@ -378,7 +379,7 @@ function endEra(){
   S.phase='between'; S.run=false; showIntermission(st);
 }
 function beginNextEra(){
-  S.era++; S.eraT=0; S.phase='play'; S.run=true;
+  S.era++; S.eraT=0; S.phase='play'; S.run=false;
   // installed base has inertia, but the market largely reopens
   for(const d of S.dots){
     if(d.own===BURN){d.own=-1;d.burn=0}
@@ -389,7 +390,7 @@ function beginNextEra(){
   log(`The ${ERAS[S.era].n} era begins — won on ${ERAS[S.era].cap}. `+
       `You arrive at ${S.A[0].cap[S.era].toFixed(1)}.`,'era');
   $('over').style.display='none';
-  $('bPause').textContent='❚❚ Pause';
+  setPauseBtn();
 }
 
 /* ================= OVERLAYS ================= */
@@ -424,7 +425,7 @@ function showIntro(){
     <button class="obtn" onclick="startPlay()">Begin the Mainframe era</button>`;
   $('over').style.display='block';
 }
-function startPlay(){S.run=true;$('over').style.display='none'}
+function startPlay(){S.run=false;$('over').style.display='none';setPauseBtn()}
 
 function showIntermission(st){
   const nx=ERAS[S.era+1], me=S.A[0], won=st[0].i===0;
@@ -493,7 +494,7 @@ function finish(t,p){
     <button class="obtn" onclick="hardReset()">Run it again</button>`;
   $('over').style.display='block';
 }
-function hardReset(){reset();lev();showIntro();$('bPause').textContent='❚❚ Pause'}
+function hardReset(){reset();lev();showIntro();setPauseBtn()}
 
 /* ================= DRAW ================= */
 function rr(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);
@@ -605,13 +606,15 @@ function lev(){
   $('vRte').textContent=(+rte.value/100).toFixed(1)+'×';
 }
 [cov,mnt,rte].forEach(e=>e.oninput=lev);
-$('bPause').onclick=e=>{if(S.phase!=='play')return;
-  S.run=!S.run;e.target.textContent=S.run?'❚❚ Pause':'▶ Run'};
+function setPauseBtn(){const b=$('bPause');
+  b.textContent=S.run?'❚❚ Pause':'▶ Run';
+  b.classList.toggle('go',!S.run)}
+$('bPause').onclick=()=>{if(S.phase!=='play')return; S.run=!S.run; setPauseBtn()};
 function spd(v,el){S.speed=v;['b1','b3'].forEach(id=>$(id).classList.toggle('on',id===el))}
 $('b1').onclick=()=>spd(1,'b1'); $('b3').onclick=()=>spd(3,'b3');
 $('bReset').onclick=hardReset;
 
-fit(); reset(); lev(); showIntro(); requestAnimationFrame(frame);
+fit(); reset(); lev(); showIntro(); setPauseBtn(); requestAnimationFrame(frame);
 </script>
 </body>
 </html>
