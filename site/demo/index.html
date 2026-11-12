@@ -94,6 +94,25 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 .field .fr{font-family:var(--mono);font-size:8px;margin-top:3px;white-space:nowrap}
 
 /* gauges: visible, not draggable */
+.mcap{margin-top:10px;background:var(--panel);border:1px solid var(--line);
+  border-radius:10px;padding:11px 13px}
+.mcr{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-family:var(--mono);font-size:10.5px}
+.mcr:last-of-type{margin-bottom:0}
+.mcr .mn{flex:0 0 66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mcr .mb{flex:1;height:13px;background:#0b1014;border-radius:3px;overflow:hidden;border:1px solid #161e26}
+.mcr .mb i{display:block;height:100%;border-radius:2px;transition:width .4s}
+.mcr .mv{flex:0 0 52px;text-align:right;color:var(--tx)}
+.mixrow{display:flex;align-items:center;gap:11px;margin-top:11px;padding-top:10px;
+  border-top:1px solid #1b2128}
+.mixrow i{flex:0 0 44px;width:44px;height:44px;border-radius:50%;display:block;
+  box-shadow:0 0 0 1px #232b34 inset}
+.mixtxt{flex:1;min-width:0}
+#mixHead{font-family:var(--mono);font-size:10.5px;color:var(--tx);margin-bottom:5px}
+#mixHead b{font-size:14px}
+.mixleg{display:flex;flex-wrap:wrap;gap:7px;font-family:var(--mono);font-size:8.5px;color:var(--dim)}
+.mixleg span u{display:inline-block;width:7px;height:7px;border-radius:2px;
+  margin-right:3px;text-decoration:none;vertical-align:-1px}
+.mcnote{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:8px;line-height:1.5}
 .gauges{margin-top:10px;background:var(--panel);border:1px solid var(--line);
   border-radius:10px;padding:11px 13px}
 .gtitle{font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--dim);
@@ -243,7 +262,7 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 
 <div class="top">
   <a href="../design/">← design</a><a href="../mockups/">mockups</a>
-  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b18</span></h1>
+  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b21</span></h1>
 </div>
 
 <div class="wrap">
@@ -266,7 +285,7 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 
   <div class="hud">
     <div><span>Capital</span><b id="hCash" style="color:var(--gr)">$0k</b></div>
-    <div><span>This market · WINS THE ERA</span>
+    <div><span>Market · by value</span>
       <div class="mrow"><i id="pie"></i><b id="hShare" style="color:var(--cy)">0%</b></div>
       <div class="bar"><i id="bShare" style="background:var(--cy);width:0%"></i></div></div>
     <div><span>Reputation</span><b id="hRep" style="color:var(--gr)">100</b>
@@ -274,6 +293,20 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
     <div><span>Sockets / sec · rate</span><b id="hFit" style="color:var(--vi)">0.00</b>
       <div class="bar"><i id="bFit" style="background:var(--vi);width:0%"></i></div>
       <em id="hFitSub">&nbsp;</em></div>
+  </div>
+
+  <div class="mcap">
+    <div class="gtitle">Market cap — what the company is actually worth</div>
+    <div id="mcapRows"></div>
+    <div class="mixrow">
+      <i id="mixPie"></i>
+      <div class="mixtxt">
+        <div id="mixHead"></div>
+        <div id="mixLeg" class="mixleg"></div>
+      </div>
+    </div>
+    <div class="mcnote">Datacenter sockets are worth 3.4&times; a consumer one, automotive 2.6&times;.
+      Share you cannot make money on does not build a company.</div>
   </div>
 
   <div class="gauges">
@@ -364,6 +397,21 @@ const SEGINFO={
  'GRID / INDUSTRIAL':{rep:.036,cost:560,txt:'inverter fire — site burned'}};
 function segOf(r){for(const s of SEG)if(r>=s[1]&&r<=s[2])return s[0];return 'CONSUMER'}
 const UNITS={CONSUMER:180,AUTOMOTIVE:40,DATACENTER:12,'GRID / INDUSTRIAL':25};
+// value per socket: volume and margin pull in opposite directions
+const SEGVAL={CONSUMER:1.0,AUTOMOTIVE:2.6,DATACENTER:3.4,'GRID / INDUSTRIAL':2.0};
+function marketCaps(){
+  const out=S.A.map((a,i)=>({i,a,hold:0}));
+  for(const d of S.dots){
+    if(d.own<0||d.own>=4)continue;
+    out[d.own].hold+=SEGVAL[d.seg]*Math.min(1,d.age/7);
+  }
+  out.forEach(o=>{
+    const rep=o.i===0?S.rep:0.9;
+    const cash=o.i===0?Math.max(0,S.cash)/1000:1.2;
+    o.cap=o.hold*(0.45+0.55*rep)+cash;
+  });
+  return out.sort((x,y)=>y.cap-x.cap);
+}
 function fmtU(k){return k>=1000?(k/1000).toFixed(1)+'M':Math.round(k)+'k'}
 function fmtC(k){return (k<0?'-$':'$')+Math.abs(Math.round(k))+'k'}
 
@@ -878,10 +926,17 @@ function doAct(id){
 }
 
 /* ================= ERA TRANSITIONS ================= */
+// An era is won on share weighted by margin, not on raw socket count: holding a
+// lot of commodity consumer sockets should not beat holding fewer valuable ones.
 function shares(){
-  const n=S.dots.length, out=S.A.map((a,i)=>({i,a,n:0}));
-  for(const d of S.dots)if(d.own>=0&&d.own<4)out[d.own].n++;
-  out.forEach(o=>o.pc=o.n/n);
+  const out=S.A.map((a,i)=>({i,a,n:0,raw:0}));
+  let tot=0;
+  for(const d of S.dots){
+    if(d.own<0||d.own>=4)continue;
+    const v=SEGVAL[d.seg]*Math.min(1,d.age/7);
+    out[d.own].n+=v; out[d.own].raw++; tot+=v;
+  }
+  out.forEach(o=>o.pc=tot>0?o.n/tot:0);
   return out.sort((x,y)=>y.n-x.n);
 }
 const PTS=[3,2,1,0];
@@ -889,7 +944,7 @@ function endEra(){
   const st=shares();
   st.forEach((o,k)=>{o.a.pts+=PTS[k]; o.a.era[S.era]=PTS[k]});
   const k=st.findIndex(o=>o.i===0);
-  log(`${ERAS[S.era].n} era ends — you placed #${k+1} with ${Math.round(st[k].pc*100)}%, +${PTS[k]} points`,'era');
+  log(`${ERAS[S.era].n} era ends — you placed #${k+1} with ${Math.round(st[k].pc*100)}% of the market <span style="color:#6d7d8c">by value</span> (${st[k].raw} sockets), +${PTS[k]} points`,'era');
   if(S.era>=NERA-1){S.phase='done';S.run=false;return showFinal()}
   // budget comes from last era's placement plus how hard you worked the ad-hoc layer
   const raw = 2 + [2,1,0,0][k] + Math.floor(S.adhocCount/3) + S.genBonus;
@@ -918,7 +973,7 @@ function beginNextEra(){
 function standRows(st){
   return '<div class="stand">'+st.map((o,k)=>`<div>
     <span class="pos">${k+1}</span><span class="nm" style="color:${o.a.c}">${o.a.n}</span>
-    <span class="pc">${Math.round(o.pc*100)}%</span>
+    <span class="pc">${Math.round(o.pc*100)}% <span style="color:var(--dim);font-size:9px">${o.raw}</span></span>
     <span class="pt" style="color:${PTS[k]?'var(--gr)':'var(--dim)'}">+${PTS[k]}</span></div>`).join('')+'</div>'}
 
 let GPICK=[];
@@ -969,6 +1024,7 @@ function togglePick(id){
   updateGen();
 }
 function updateGen(){
+  if(!$('gBud'))return;            // planning screen is not on screen
   const left=S.genBudget-spent();
   $('gBud').textContent=left;
   GEN.forEach(g=>{
@@ -1003,6 +1059,14 @@ function showFinal(){
       <span class="pt" style="color:var(--tx)">${a.pts}</span></div>`).join('')}</div>
     <div style="margin-top:10px;font-family:var(--mono);font-size:9.5px;color:var(--dim)">
       ● won the era · ○ placed · · came last</div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--am);margin-bottom:8px">FINAL MARKET CAP</div>
+      ${(()=>{const mc=marketCaps(),top=Math.max(...mc.map(o=>o.cap),1);
+        return mc.map((o,k)=>`<div class="mcr">
+          <span class="mn" style="color:${o.a.c}">${k+1}. ${o.a.n}</span>
+          <span class="mb"><i style="width:${(o.cap/top*100).toFixed(1)}%;background:${o.a.c};opacity:${o.i===0?1:.6}"></i></span>
+          <span class="mv">$${o.cap.toFixed(1)}B</span></div>`).join('')})()}
+    </div>
     <div style="margin-top:13px;font-family:var(--mono);font-size:11px;color:var(--mut);line-height:1.9">
       shipped ${S.shipped} · caught ${S.caught} · escaped ${S.escaped}<br>
       field failures ${S.fires} · ad-hoc actions ${S.adhocCount} · capital ${fmtC(S.cash)}</div>
@@ -1203,6 +1267,34 @@ function hud(){
   setW('bShare',(myShare*100).toFixed(1)+'%');
   setText('hRep',Math.round(S.rep*100));
   setW('bRep',(S.rep*100).toFixed(1)+'%',S.rep<.4?'var(--rd)':S.rep<.7?'var(--am)':'var(--gr)');
+  const mc=marketCaps(), top=Math.max(...mc.map(o=>o.cap),1);
+  setHTML('mcapRows', mc.map((o,k)=>`<div class="mcr">
+    <span class="mn" style="color:${o.a.c}">${k+1}. ${o.a.n}</span>
+    <span class="mb"><i style="width:${(o.cap/top*100).toFixed(1)}%;background:${o.a.c};opacity:${o.i===0?1:.6}"></i></span>
+    <span class="mv">$${o.cap.toFixed(1)}B</span></div>`).join(''));
+  // where your value actually comes from, and how efficient that mix is
+  const SEGC={CONSUMER:'#49c5dd',AUTOMOTIVE:'#f0a73d',DATACENTER:'#a98ae0','GRID / INDUSTRIAL':'#62c98c'};
+  const mix={}; let mySock=0, myVal=0;
+  for(const sg of SEG)mix[sg[0]]=0;
+  for(const d of S.dots){
+    if(d.own!==0)continue;
+    const m=Math.min(1,d.age/7);
+    mix[d.seg]+=SEGVAL[d.seg]*m; mySock+=m; myVal+=SEGVAL[d.seg]*m;
+  }
+  const totMix=Object.values(mix).reduce((a,b)=>a+b,0);
+  let mAcc=0, mSegs=[];
+  if(totMix<=0)mSegs.push('#141b21 0% 100%');
+  else for(const sg of SEG){ const v=mix[sg[0]]; if(v<=0)continue;
+    const a=mAcc,b=mAcc+v/totMix*100; mAcc=b;
+    mSegs.push(`${SEGC[sg[0]]} ${a.toFixed(1)}% ${b.toFixed(1)}%`); }
+  if(mAcc>0&&mAcc<100)mSegs[mSegs.length-1]=mSegs[mSegs.length-1].replace(/[\d.]+%$/,'100%');
+  const mixPie='conic-gradient('+mSegs.join(',')+')';
+  const mp=$('mixPie'); if(mp&&mp.__p!==mixPie){mp.__p=mixPie;mp.style.background=mixPie}
+  const eff=mySock>0?myVal/mySock:0;
+  setHTML('mixHead',`margin efficiency <b style="color:${eff>2.3?'var(--gr)':eff>1.6?'var(--am)':'var(--rd)'}">`+
+    `${eff.toFixed(2)}</b><span style="color:var(--dim)"> of 3.40 — average value per socket you hold</span>`);
+  setHTML('mixLeg',SEG.map(sg=>`<span><u style="background:${SEGC[sg[0]]}"></u>${
+    sg[0].split(' ')[0]} ${totMix>0?Math.round(mix[sg[0]]/totMix*100):0}%</span>`).join(''));
   updateReadouts(); drawHand();
   const R=claimRates(), bestR=Math.max(...R.riv), bi=R.riv.indexOf(bestR)+1;
   setText('hFit',R.you.toFixed(2));
@@ -1244,7 +1336,7 @@ const TUT=[
  {t:'.score', n:'Step 2', h:'You and three rivals',
   p:'Points so far, the rate each company is taking sockets, and capability in stars. Each rival runs one fixed doctrine: <b>Hoshino</b> always builds for now, <b>Kaito</b> always builds for next, <b>Meridian</b> hedges. Watch Hoshino win early and collapse.'},
  {t:'.hud', n:'Step 3', h:'Capital, market, reputation, rate',
-  p:'Capital pays for ad-hoc actions. The pie is <b>this era\'s market</b> — yours against the other three and the unclaimed remainder. <b>Market share wins the era</b> — the pie is the scoreboard. Sockets/sec is the speedometer: the rate you are gaining share, with the best rival shown underneath so you know if you are pulling ahead or falling behind.'},
+  p:'Capital pays for ad-hoc actions. The pie is <b>this era\'s market</b> — yours against the other three and the unclaimed remainder. <b>Market share by value wins the era</b> — the pie is the scoreboard, and a datacenter socket counts 3.4&times; a consumer one. Sockets/sec is the speedometer: the rate you are gaining share, with the best rival shown underneath so you know if you are pulling ahead or falling behind.'},
  {t:'.gauges', n:'Step 4', h:'The plant — you cannot touch it directly',
   p:'Coverage, maintenance and output are <b>moved only by your decisions</b>, never by hand. Each line tells you what it is doing right now: how many defects you catch, what share of units are born bad, units per second.'},
  {t:'.acts', n:'Step 5', h:'Ad-hoc actions',
