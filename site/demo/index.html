@@ -262,7 +262,7 @@ canvas{display:block;width:100%;height:auto;border:1px solid var(--line);
 
 <div class="top">
   <a href="../design/">← design</a><a href="../mockups/">mockups</a>
-  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b24</span></h1>
+  <div class="sp"></div><h1>FIVE ERAS <span style="color:var(--am);font-size:10px">b26</span></h1>
 </div>
 
 <div class="wrap">
@@ -1024,39 +1024,62 @@ function eraBreakdown(st){
   const R=claimRates();
   const push=(ok,label,mine,theirs)=>rows.push({ok,label,mine,theirs});
 
-  push(iWon,'Market held, by value',
-    (me.pc*100).toFixed(0)+'%', (win.pc*100).toFixed(0)+'%');
-  push(me.raw>=win.raw,'Sockets held', me.raw, win.raw);
-  push(R.you>=R.riv[win.i-1]||win.i===0,'Sockets won per second',
-    R.you.toFixed(2), win.i===0?'—':R.riv[win.i-1].toFixed(2));
-  push(avgVal(me)>=avgVal(win),'Average value per socket',
-    avgVal(me).toFixed(2), avgVal(win).toFixed(2));
-  push(S.A[0].cap[S.era]>=win.a.cap[S.era],'Capability, of 5',
-    S.A[0].cap[S.era].toFixed(1), win.a.cap[S.era].toFixed(1));
+  const vs = iWon ? st[1] : win;     // compare against the runner-up if you won
+  push(me.pc>=vs.pc,'Market held, by value',
+    (me.pc*100).toFixed(0)+'%', (vs.pc*100).toFixed(0)+'%');
+  push(me.raw>=vs.raw,'Sockets held', me.raw, vs.raw);
+  push(R.you>=R.riv[vs.i-1],'Sockets won per second',
+    R.you.toFixed(2), R.riv[vs.i-1].toFixed(2));
+  push(avgVal(me)>=avgVal(vs),'Average value per socket',
+    avgVal(me).toFixed(2), avgVal(vs).toFixed(2));
+  push(S.A[0].cap[S.era]>=vs.a.cap[S.era],'Capability, of 5',
+    S.A[0].cap[S.era].toFixed(1), vs.a.cap[S.era].toFixed(1));
   push(S.eraFires===0,'Field failures this era',
     S.eraFires+(S.eraLost?' ('+S.eraLost+' sockets lost)':''), '—');
 
-  // the single sentence that explains the result
+  // The verdict has to agree with the rows above it. Rate is instantaneous and
+  // can favour you at the bell even though they out-accumulated you all era, so
+  // it is only cited when it is actually worse.
+  const vsRate=R.riv[vs.i-1], moreSockets=me.raw>vs.raw, betterVal=avgVal(me)>avgVal(vs);
   let verdict;
-  if(iWon) verdict='You won it on '+(avgVal(me)>avgVal(st[1])?'margin — you held the <b>more valuable</b> sockets'
-    :'volume — you simply held <b>more</b> of them');
-  else if(me.raw>win.raw) verdict='You held <b>more sockets than '+win.a.n+'</b> but they were worth less: '+
-    avgVal(me).toFixed(2)+' against '+avgVal(win).toFixed(2)+' each. Volume in cheap segments does not win an era.';
-  else if(S.A[0].cap[S.era]<win.a.cap[S.era]-0.4) verdict=win.a.n+' was <b>better suited to this era</b> — '+
-    win.a.cap[S.era].toFixed(1)+' stars against your '+S.A[0].cap[S.era].toFixed(1)+'. That was decided last era, not this one.';
-  else if(S.eraFires>1) verdict='Close on capability, but <b>'+S.eraFires+' field failures</b> cost you '+
-    S.eraLost+' sockets. Quality was the difference.';
-  else verdict=win.a.n+' simply took sockets faster. Your line ran at <b>'+R.ship.toFixed(1)+'/s</b>.';
+  if(iWon){
+    verdict = betterVal && !moreSockets
+      ? 'You won it on <b>margin</b> — fewer sockets than '+vs.a.n+', worth more each.'
+      : moreSockets && !betterVal
+        ? 'You won it on <b>volume</b> — cheaper sockets, but a lot more of them.'
+        : 'You won it on <b>both counts</b>: more sockets than '+vs.a.n+', and worth more each.';
+  } else if(moreSockets && !betterVal){
+    verdict='You held <b>more sockets than '+win.a.n+'</b> ('+me.raw+' to '+win.raw+
+      ') but they were worth less each, '+avgVal(me).toFixed(2)+' against '+avgVal(win).toFixed(2)+
+      '. <b>Volume in cheap segments does not win an era.</b>';
+  } else if(S.eraFires>1){
+    verdict='<b>'+S.eraFires+' field failures</b> cost you '+S.eraLost+
+      ' sockets this era. Quality was the difference.';
+  } else if(S.A[0].cap[S.era]<win.a.cap[S.era]-0.4){
+    verdict=win.a.n+' was <b>better suited to this era</b> — '+win.a.cap[S.era].toFixed(1)+
+      ' against your '+S.A[0].cap[S.era].toFixed(1)+'. That was decided last era, not this one.';
+  } else if(R.you<vsRate){
+    verdict=win.a.n+' <b>took sockets faster all era</b> — '+vsRate.toFixed(2)+
+      '/s against your '+R.you.toFixed(2)+'/s.';
+  } else {
+    verdict='You finished faster ('+R.you.toFixed(2)+'/s against '+vsRate.toFixed(2)+
+      '/s) but <b>started too slowly</b> — '+win.a.n+' banked '+win.raw+
+      ' sockets to your '+me.raw+' before you caught up.';
+  }
 
+  const other = iWon ? st[1] : win;
   return `<div class="bd">
     <div class="bdh">Why ${iWon?'you won':win.a.n+' won'}</div>
+    <div class="bdr bdhead">
+      <span class="bi"></span><span class="bl"></span>
+      <span class="bm" style="color:var(--cy)">YOU</span>
+      <span class="bt" style="color:${other.a.c}">${other.a.n}</span></div>
     ${rows.map(r=>`<div class="bdr">
       <span class="bi" style="color:${r.ok?'var(--gr)':'var(--rd)'}">${r.ok?'▲':'▼'}</span>
       <span class="bl">${r.label}</span>
       <span class="bm" style="color:${r.ok?'var(--gr)':'var(--rd)'}">${r.mine}</span>
-      <span class="bt">${r.theirs}</span></div>`).join('')}
+      <span class="bt" style="color:${other.a.c};opacity:.85">${r.theirs}</span></div>`).join('')}
     <div class="bdv">${verdict}</div>
-    <div class="bdf">you &nbsp;/&nbsp; ${iWon?'runner-up '+st[1].a.n:win.a.n}</div>
   </div>`;
 }
 function standRows(st){
