@@ -50,6 +50,36 @@ FLAT = (
 )
 
 CONCEPTS = {
+    # A Monopoly-man style tycoon mascot, but his technology is antique: valves,
+    # brass, punch cards. A top hat and moustache is one of the few silhouettes
+    # that still reads at 48px.
+    "tycoon": (
+        "Mascot icon of a plump jolly old-money tycoon seen head and shoulders: "
+        "tall black top hat, monocle, big white walrus moustache, wing collar and "
+        "bow tie. The bow tie is a little printed circuit board and he holds up a "
+        "glowing vacuum tube like a cigar. Warm cream and brass against a deep "
+        "navy-black background. " + FLAT
+    ),
+    "valveman": (
+        "Mascot icon of a cheerful Victorian industrialist in a top hat with a "
+        "brass-rimmed monocle, his enormous white moustache curling at the ends, "
+        "cradling a silicon wafer that glows cyan. Little glass vacuum tubes are "
+        "tucked in his hatband like press cards. Silly, charming, iconic. " + FLAT
+    ),
+    "engraved": (
+        "A portrait of a jolly moustachioed top-hatted tycoon drawn in the style "
+        "of an engraving on an old banknote: fine cross-hatched linework, oval "
+        "frame, ornate scrollwork. Woven into the scrollwork are antique circuit "
+        "traces, vacuum tubes and punch cards. Cream ink on deep navy-black, "
+        "centred, generous margin, looks like a game icon."
+    ),
+    "admascot": (
+        "A 1950s advertising mascot: a rotund smiling tycoon in a top hat and "
+        "tails with a curling white moustache, giving a thumbs up beside an "
+        "enormous glowing vacuum tube taller than he is. Bold retro cartoon "
+        "linework, limited flat colour palette of cream, brass and cyan on near "
+        "black, slight vintage print texture, centred with wide margins."
+    ),
     # Same pun, drawn as a flat app icon rather than a rendered object.
     "flatcrisp": (
         "A single wavy golden potato crisp, drawn as a flat vector icon, with "
