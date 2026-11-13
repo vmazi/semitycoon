@@ -47,17 +47,19 @@ def font(size: int) -> ImageFont.FreeTypeFont:
     raise SystemExit(f"no usable font; looked for {FONTS}")
 
 
-def social_card(art: Image.Image, out: Path) -> None:
+def social_card(art: Image.Image, out: Path, zoom: float = 1.0) -> None:
     W, H = 1200, 630
     card = Image.new("RGB", (W, H), BG)
 
     # Art bleeds off the left edge and fades into the background, so the panel
-    # seam never reads as a hard rectangle against the dark card. The crop is
-    # tightened and pulled upward because these scenes put the subject above
-    # centre and leave dead ground along the bottom.
-    s = art.crop((int(art.width * 0.10), int(art.height * 0.04),
-                  int(art.width * 0.90), int(art.height * 0.84)))
-    a = s.resize((H, H), Image.LANCZOS)
+    # seam never reads as a hard rectangle against the dark card. Zoom is opt-in:
+    # a wide street scene wants tightening, a portrait that is already framed
+    # close just loses the top of the subject's head.
+    if zoom > 1.0:
+        k = (1 - 1 / zoom) / 2
+        art = art.crop((int(art.width * k), int(art.height * k),
+                        int(art.width * (1 - k)), int(art.height * (1 - k))))
+    a = art.resize((H, H), Image.LANCZOS)
     card.paste(a, (0, 0))
     fade = Image.new("L", (H, H), 255)
     fd = ImageDraw.Draw(fade)
@@ -84,6 +86,8 @@ def main() -> None:
     # The icon and the card are different jobs. An icon needs a silhouette that
     # holds at 48px; the card has room for a scene that tells the joke.
     ap.add_argument("--og", help="separate art for the social card (default: source)")
+    ap.add_argument("--og-zoom", type=float, default=1.0,
+                    help="tighten the card crop; >1 for wide scenes")
     ap.add_argument("--out", default=str(ROOT / "site" / "icons"))
     args = ap.parse_args()
 
@@ -91,12 +95,19 @@ def main() -> None:
     out.mkdir(parents=True, exist_ok=True)
     art = square(Image.open(args.source).convert("RGB"))
 
+    # Pad the maskable variant with the artwork's own corner colour rather than
+    # the site background: art on a light ground would otherwise sit in a black
+    # frame and read as a mistake.
+    pad = tuple(round(sum(c) / 4) for c in zip(
+        art.getpixel((1, 1)), art.getpixel((art.width - 2, 1)),
+        art.getpixel((1, art.height - 2)), art.getpixel((art.width - 2, art.height - 2))))
+
     for n in SIZES:
         art.resize((n, n), Image.LANCZOS).save(out / f"icon-{n}.png", optimize=True)
 
         # Android's maskable crop can take up to 20% off each edge, so the art
-        # only gets the middle 60% and the rest is the page background.
-        m = Image.new("RGB", (n, n), BG)
+        # only gets the middle 60% and the rest is padding.
+        m = Image.new("RGB", (n, n), pad)
         inner = int(n * 0.6)
         m.paste(art.resize((inner, inner), Image.LANCZOS), ((n - inner) // 2,) * 2)
         m.save(out / f"maskable-{n}.png", optimize=True)
@@ -105,7 +116,7 @@ def main() -> None:
     art.resize((64, 64), Image.LANCZOS).save(
         out / "favicon.ico", sizes=[(16, 16), (32, 32), (48, 48)])
     card_art = square(Image.open(args.og).convert("RGB")) if args.og else art
-    social_card(card_art, out / "og.png")
+    social_card(card_art, out / "og.png", args.og_zoom)
     print(f"wrote {len(list(out.iterdir()))} files to {out}")
 
 
